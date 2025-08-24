@@ -2,15 +2,19 @@ import fs from 'fs';
 import path from 'path';
 import Link from 'next/link';
 import Layout from '../components/Layout';
+import PaperOrbitaleLite from '../components/PaperOrbitaleLite'; 
+import HeroScientificField from '../components/HeroScientificField';
 
 export default function Home({ articles }) {
   return (
     <Layout>
+      {/* HERO SCIENTIFICO (logo outline + particelle) */}
+       <HeroScientificField />
       {/* Hero Section */}
       <section
         style={{
           position: 'relative',
-          height: '80vh',
+          minHeight: '70vh',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -19,31 +23,16 @@ export default function Home({ articles }) {
           color: '#fff',
         }}
       >
-        <img
-          src="/images/hero.png"
-          alt="Futuristic background"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: -1,
-          }}
-        />
+        {/* No image: pure gradient */}
         <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>
           Elevate Your Human Potential
         </h1>
         <p style={{ maxWidth: '650px', fontSize: '1.1rem', lineHeight: 1.6 }}>
-          Our vision is to empower every individual to optimize their health,
-          energy, and longevity through science‑backed biohacking. We believe in
-          demystifying the processes of aging and providing tools and knowledge
-          so you can live the life you imagine【616081394139150†L117-L120】.
+          La nostra vision è aiutarti a ottimizzare salute, energia e longevità attraverso il biohacking supportato dalla scienza. Vogliamo demistificare i processi dell’invecchiamento e offrirti strumenti e conoscenze per vivere la vita che desideri.
         </p>
         <div style={{ marginTop: '2rem' }}>
           <Link className="btn" href="/academy">
-            Explore the Academy
+            Scopri l’Academy
           </Link>
         </div>
       </section>
@@ -51,30 +40,24 @@ export default function Home({ articles }) {
       {/* Mission Section */}
       <section style={{ marginTop: '4rem' }}>
         <div className="glass">
-          <h2>Our Mission</h2>
+          <h2>La nostra Mission</h2>
           <p>
-            Æ‑HUMAN blends cutting‑edge science with holistic wellbeing to bring
-            you products and educational resources that are transparent, evidence‑based,
-            and effective. We attend not only to the physical but also to the
-            intellectual, emotional, and spiritual dimensions of each individual【616081394139150†L124-L131】. 
-            Through our academy and product line, we support informed decision‑making and
-            self‑care by sharing interventions and biohacks that are backed by
-            data and scientific research【228063024036399†L52-L63】.
+            Æ‑HUMAN unisce scienza d’avanguardia e benessere olistico per offrirti prodotti e risorse educative trasparenti, efficaci e basate sull’evidenza. Attenendoci alle dimensioni fisiche, mentali ed emotive, promuoviamo l’autocura e decisioni informate attraverso biohack supportati da dati.
           </p>
         </div>
       </section>
 
+      {/* ⟵ NEW: Sezione “Paper Orbitale” sotto Mission */}
+      <PaperOrbitaleLite />
+
       {/* Academy Preview Section */}
       <section style={{ marginTop: '4rem' }}>
         <h2>Academy Highlights</h2>
-        <p>
-          Dive into our knowledge base where we share the latest research,
-          techniques, and tools from the world of longevity and wellness.
-        </p>
+        <p>Immergiti nel nostro hub di conoscenza con ricerche, tecniche e strumenti per longevità e wellness.</p>
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
             gap: '1.5rem',
             marginTop: '2rem',
           }}
@@ -84,7 +67,7 @@ export default function Home({ articles }) {
               <h3>{article.title}</h3>
               <p>{article.excerpt}</p>
               <Link className="btn" href={`/academy/${article.slug}`}>
-                Read More
+                Leggi di più
               </Link>
             </div>
           ))}
@@ -95,9 +78,7 @@ export default function Home({ articles }) {
       <section style={{ marginTop: '4rem', marginBottom: '4rem' }}>
         <h2>HUMAE Products Marketplace</h2>
         <p>
-          Our super drink and advanced biohacking tools are coming soon! Stay
-          tuned as we build a marketplace for curated products designed to
-          enhance your wellbeing.
+          Il nostro super drink e gli altri prodotti biohacking stanno arrivando! Resta sintonizzato: il marketplace sarà presto online.
         </p>
         <div style={{ marginTop: '2rem' }}>
           <Link className="btn" href="/products">
@@ -111,9 +92,7 @@ export default function Home({ articles }) {
 
 export async function getStaticProps() {
   const articlesDir = path.join(process.cwd(), 'data', 'articles');
-  const filenames = fs
-    .readdirSync(articlesDir)
-    .filter((file) => file.endsWith('.md'));
+  const filenames = fs.readdirSync(articlesDir).filter((file) => file.endsWith('.md'));
 
   const articles = filenames.slice(0, 2).map((filename) => {
     const slug = filename.replace(/\.md$/, '');
