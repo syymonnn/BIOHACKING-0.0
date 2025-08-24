@@ -1,0 +1,18 @@
+.logo span {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #fff;
+}
+
+.navLinks a {
+  margin-left: 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e0f2fe;
+  transition: color 0.2s ease;
+}
+
+.navLinks a:hover {
+  color: #38bdf8;
+}
