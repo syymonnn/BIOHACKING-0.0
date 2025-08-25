@@ -2,15 +2,12 @@ import Layout from '../components/Layout';
 
 export default function Products() {
   return (
-    <Layout>
-      <h1>HUMAE Products</h1>
-      <div className="glass" style={{ marginTop: '2rem' }}>
-        <p>
-          Our marketplace is under construction! We are working hard to bring you
-          innovative biohacking products and the highly anticipated super drink.
-          Check back soon for updates.
-        </p>
-      </div>
+    <Layout title="Products">
+      <section className="glass" style={{marginTop:'1rem'}}>
+        <h1>Products</h1>
+        <p style={{color:'var(--muted)'}}>Marketplace in arrivo: super drink, supplementi e gear selezionati.</p>
+        <p style={{opacity:.7}}>Iscriviti alla newsletter (prossimo step) per l’early access.</p>
+      </section>
     </Layout>
   );
 }

@@ -8,7 +8,7 @@ export default function HeroOrbitale() {
     const cvs = document.getElementById('ae-field');
     const ctx = cvs.getContext('2d', { alpha: true });
 
-    // ---- params rendering (uguali a prima) ----
+    // ---- params rendering ----
     const COLORS = ['#dce8f5', '#b9c9f2'];
     const ACCENT_PROB = 0.008;
     const N_PARTS = 300, LOCAL_R1 = 110, LOCAL_R2 = 200, ATTR1 = 0.9, ATTR2 = 0.35;

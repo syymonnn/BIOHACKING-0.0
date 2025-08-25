@@ -11,7 +11,6 @@ function ParticleField() {
     overflow: 'hidden',
     pointerEvents: 'none',
   };
-
   return (
     <div aria-hidden style={wrap}>
       {Array.from({ length: PARTICLES }).map((_, i) => {
@@ -38,6 +37,7 @@ function ParticleField() {
                 }}
               />
             </div>
+            {/* keyframes una sola volta va bene; qui resta locale al componente */}
             <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
           </div>
         );
@@ -54,7 +54,7 @@ function Badge({ label }) {
     borderRadius: 999,
     border: '1px solid rgba(255,255,255,0.15)',
     background: 'rgba(255,255,255,0.06)',
-    padding: '5px 11px', // leggermente più piccolo
+    padding: '5px 11px',
     fontSize: 11.5,
     letterSpacing: 0.3,
     color: 'rgba(255,255,255,0.85)',
@@ -78,39 +78,70 @@ function Badge({ label }) {
 
 export default function PaperOrbitaleLite() {
   const [mounted, setMounted] = useState(false);
+
+  // 🔧 NEW: breakpoint reattivo e SSR-safe
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    const mql = window.matchMedia('(min-width: 1024px)');
+    const onChange = (e) => setIsDesktop(e.matches);
+    setIsDesktop(mql.matches);
+    // Safari/Chromium
+    mql.addEventListener ? mql.addEventListener('change', onChange) : mql.addListener(onChange);
+    return () => {
+      mql.removeEventListener ? mql.removeEventListener('change', onChange) : mql.removeListener(onChange);
+    };
+  }, []);
+
   const [hoverIdx, setHoverIdx] = useState(null);
 
-  useEffect(() => setMounted(true), []);
-
-  // layout + “zoom‑out” soft
+  // layout
   const section = { marginTop: '4rem' };
-  const container = { maxWidth: 1100, margin: '0 auto', padding: '0 24px', color: '#fff' };
+  const container = {
+    maxWidth: 1100,
+    margin: '0 auto',
+    padding: '0 24px',
+    color: '#fff',
+    // safe-areas
+    paddingLeft: 'max(24px, env(safe-area-inset-left))',
+    paddingRight: 'max(24px, env(safe-area-inset-right))',
+  };
 
-  // header: badges a destra, no wrap su desktop
-  const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
+  // Header
   const header = {
     display: 'flex',
     alignItems: 'baseline',
     justifyContent: 'space-between',
     gap: 12,
     marginBottom: 18,
-    flexWrap: isDesktop ? 'nowrap' : 'wrap',
+    flexWrap: isDesktop ? 'nowrap' : 'wrap', // 👈 su mobile va a capo
   };
 
-  // tipografia leggermente ridotta
   const title = { fontSize: '1.85rem', fontWeight: 600, letterSpacing: 0.2, lineHeight: 1.15 };
-  const subtitle = { marginTop: 6, maxWidth: 700, fontSize: 13.5, lineHeight: 1.6, color: 'rgba(255,255,255,0.75)' };
-  const badges = { display: 'flex', gap: 8, alignItems: 'center' };
+  const subtitle = {
+    marginTop: 6,
+    maxWidth: 700,
+    fontSize: 13.5,
+    lineHeight: 1.6,
+    color: 'rgba(255,255,255,0.75)',
+  };
+  const badges = {
+    display: 'flex',
+    gap: 8,
+    alignItems: 'center',
+    overflowX: isDesktop ? 'visible' : 'auto', // 👈 se non ci stanno, scroll orizzontale
+    WebkitOverflowScrolling: 'touch',
+  };
 
-  // grid: gap più compatto
+  // Grid responsiva
   const grid = {
     display: 'grid',
-    gridTemplateColumns: isDesktop ? '1fr 1fr' : '1fr',
+    gridTemplateColumns: isDesktop ? '1fr 1fr' : '1fr', // 👈 stack su mobile
     gap: isDesktop ? 20 : 16,
-    alignItems: 'center',
+    alignItems: 'stretch',
   };
 
-  // card leggermente più piccola
+  // card
   const card = {
     position: 'relative',
     borderRadius: 14,
@@ -120,6 +151,7 @@ export default function PaperOrbitaleLite() {
     backdropFilter: 'blur(14px)',
     boxShadow: '0 16px 110px rgba(6,182,212,0.12)',
     overflow: 'hidden',
+    minWidth: 0, // 👈 evita overflow su mobile
   };
 
   const glow = {
@@ -139,10 +171,9 @@ export default function PaperOrbitaleLite() {
   const liTitle = { fontSize: 13.5, fontWeight: 600, marginBottom: 3 };
   const liText = { fontSize: 13.5, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 };
 
-  // nota verde (inizialmente nascosta, appare su hover con animazione)
   const noteBase = { marginTop: 4, fontSize: 12.5, color: 'rgba(16,185,129,0.9)' };
 
-  const copyWrap = { display: 'flex', flexDirection: 'column', gap: 12 };
+  const copyWrap = { display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 };
   const copyTitle = { fontSize: 19, fontWeight: 600 };
   const copyText = { color: 'rgba(255,255,255,0.85)', lineHeight: 1.7, fontSize: 14.5 };
   const callout = {
@@ -162,7 +193,7 @@ export default function PaperOrbitaleLite() {
       <div style={container}>
         {/* Header */}
         <div style={header}>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <h2 style={title}>
               Ogni parola, <span style={{ color: 'rgb(16,185,129)' }}>verificata</span>.
             </h2>

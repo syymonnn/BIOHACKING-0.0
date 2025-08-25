@@ -1,15 +1,18 @@
+// pages/index.js
 import fs from 'fs';
 import path from 'path';
 import Link from 'next/link';
 import Layout from '../components/Layout';
-import PaperOrbitaleLite from '../components/PaperOrbitaleLite'; 
+import PaperOrbitaleLite from '../components/PaperOrbitaleLite';
 import HeroScientificField from '../components/HeroScientificField';
+import MissionSection from '../components/MissionSection'; // ⟵ NEW
 
 export default function Home({ articles }) {
   return (
     <Layout>
-      {/* HERO SCIENTIFICO (logo outline + particelle) */}
-       <HeroScientificField />
+      {/* HERO SCIENTIFICO */}
+      <HeroScientificField />
+
       {/* Hero Section */}
       <section
         style={{
@@ -23,7 +26,6 @@ export default function Home({ articles }) {
           color: '#fff',
         }}
       >
-        {/* No image: pure gradient */}
         <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>
           Elevate Your Human Potential
         </h1>
@@ -31,23 +33,14 @@ export default function Home({ articles }) {
           La nostra vision è aiutarti a ottimizzare salute, energia e longevità attraverso il biohacking supportato dalla scienza. Vogliamo demistificare i processi dell’invecchiamento e offrirti strumenti e conoscenze per vivere la vita che desideri.
         </p>
         <div style={{ marginTop: '2rem' }}>
-          <Link className="btn" href="/academy">
-            Scopri l’Academy
-          </Link>
+          <Link className="btn" href="/academy">Scopri l’Academy</Link>
         </div>
       </section>
 
-      {/* Mission Section */}
-      <section style={{ marginTop: '4rem' }}>
-        <div className="glass">
-          <h2>La nostra Mission</h2>
-          <p>
-            Æ‑HUMAN unisce scienza d’avanguardia e benessere olistico per offrirti prodotti e risorse educative trasparenti, efficaci e basate sull’evidenza. Attenendoci alle dimensioni fisiche, mentali ed emotive, promuoviamo l’autocura e decisioni informate attraverso biohack supportati da dati.
-          </p>
-        </div>
-      </section>
+      {/* Mission come componente separato */}
+      <MissionSection />
 
-      {/* ⟵ NEW: Sezione “Paper Orbitale” sotto Mission */}
+      {/* Sezione “Paper Orbitale” */}
       <PaperOrbitaleLite />
 
       {/* Academy Preview Section */}
@@ -66,9 +59,7 @@ export default function Home({ articles }) {
             <div key={article.slug} className="glass">
               <h3>{article.title}</h3>
               <p>{article.excerpt}</p>
-              <Link className="btn" href={`/academy/${article.slug}`}>
-                Leggi di più
-              </Link>
+              <Link className="btn" href={`/academy/${article.slug}`}>Leggi di più</Link>
             </div>
           ))}
         </div>
@@ -77,13 +68,9 @@ export default function Home({ articles }) {
       {/* Marketplace Preview Section */}
       <section style={{ marginTop: '4rem', marginBottom: '4rem' }}>
         <h2>HUMAE Products Marketplace</h2>
-        <p>
-          Il nostro super drink e gli altri prodotti biohacking stanno arrivando! Resta sintonizzato: il marketplace sarà presto online.
-        </p>
+        <p>Il nostro super drink e gli altri prodotti biohacking stanno arrivando! Resta sintonizzato: il marketplace sarà presto online.</p>
         <div style={{ marginTop: '2rem' }}>
-          <Link className="btn" href="/products">
-            Coming Soon
-          </Link>
+          <Link className="btn" href="/products">Coming Soon</Link>
         </div>
       </section>
     </Layout>
@@ -104,9 +91,5 @@ export async function getStaticProps() {
     return { slug, title, excerpt };
   });
 
-  return {
-    props: {
-      articles,
-    },
-  };
+  return { props: { articles } };
 }
