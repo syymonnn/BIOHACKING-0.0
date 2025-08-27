@@ -20,33 +20,70 @@ export default function HeroOrbitale() {
     const mouse = { x: 0, y: 0, active: false };
     let parts = [];
 
-    // ---- FADE su scroll ----
-    const MIN_OPACITY = 0.35;        // opacità finale (più basso = più “dietro”)
+    // ---- viewport lock (evita retrigger su mobile UI bars) ----
+    const vp = {
+      baseW: window.innerWidth,
+      baseH: window.innerHeight,
+      orientation: (() => {
+        const o = (window.screen && window.screen.orientation && window.screen.orientation.type) || '';
+        return o || (window.innerWidth > window.innerHeight ? 'landscape' : 'portrait');
+      })()
+    };
+
+    // ---- FADE su scroll (stabile su baseH) ----
+    const MIN_OPACITY = 0.35;        // opacità finale
     let targetOpacity = 1, currentOpacity = 1;
-    const LERP = 0.12;               // morbidezza animazione
+    const LERP = 0.12;
+    const fadeBase = Math.min(vp.baseH * 0.4, 640); // “fetta” di pagina iniziale
 
     function updateFade() {
-      const fadeDist = Math.min(window.innerHeight * 0.4, 640); // prima “fetta” di pagina
-      const t = Math.min(1, window.scrollY / fadeDist);         // 0..1
-      targetOpacity = 1 - t * (1 - MIN_OPACITY);                // 1 → MIN_OPACITY
+      const t = Math.min(1, window.scrollY / fadeBase); // 0..1
+      targetOpacity = 1 - t * (1 - MIN_OPACITY);        // 1 → MIN_OPACITY
     }
 
     function applyFade() {
-      // lerp per evitare scatti
       currentOpacity += (targetOpacity - currentOpacity) * LERP;
       const el = overlayRef.current;
       if (el) el.style.opacity = currentOpacity.toFixed(3);
     }
 
-    // full‑viewport canvas
-    function resize() {
+    // full-viewport canvas
+    function doSize(width, height) {
       dpr = Math.min(2, window.devicePixelRatio || 1);
-      w = cvs.width  = Math.floor(window.innerWidth  * dpr);
-      h = cvs.height = Math.floor(window.innerHeight * dpr);
-      built = false;
+      w = cvs.width  = Math.floor(width  * dpr);
+      h = cvs.height = Math.floor(height * dpr);
+    }
+
+    // Ricostruisci SOLO se cambia orientamento o la larghezza significativamente
+    function shouldHardResize() {
+      const newW = window.innerWidth;
+      const newH = window.innerHeight;
+      const newOrientation =
+        (window.screen && window.screen.orientation && window.screen.orientation.type) ||
+        (newW > newH ? 'landscape' : 'portrait');
+
+      const widthDelta = Math.abs(newW - vp.baseW);
+      const widthChanged = widthDelta > 40; // soglia safe (evita micro-resize)
+      const orientationChanged = newOrientation !== vp.orientation;
+
+      return widthChanged || orientationChanged;
+    }
+
+    function resize() {
+      if (shouldHardResize()) {
+        // aggiorna lock e ricostruisci
+        vp.baseW = window.innerWidth;
+        vp.baseH = window.innerHeight;
+        vp.orientation =
+          (window.screen && window.screen.orientation && window.screen.orientation.type) ||
+          (vp.baseW > vp.baseH ? 'landscape' : 'portrait');
+
+        doSize(vp.baseW, vp.baseH);
+        built = false; // force rebuild UNA tantum quando serve davvero
+      }
+      // se è solo “altezza che respira” per le UI bars, non tocchiamo nulla
       updateFade();
     }
-    window.addEventListener('resize', resize);
 
     const choice = (a) => a[(Math.random()*a.length)|0];
     const rand   = (a,b) => a + Math.random()*(b-a);
@@ -144,24 +181,25 @@ export default function HeroOrbitale() {
     function onResize(){ resize(); }
 
     // boot
-    resize(); updateFade();
+    doSize(vp.baseW, vp.baseH);
+    updateFade();
     requestAnimationFrame(draw);
     window.addEventListener('pointermove', onPointer, {passive:true});
     window.addEventListener('touchmove', onPointer, {passive:true});
     window.addEventListener('scroll', onScroll, {passive:true});
-    window.addEventListener('resize', onResize);
+    window.addEventListener('resize', onResize, {passive:true});
 
     // PRM
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handlePRM = () => { if (media.matches) overlayRef.current && (overlayRef.current.style.opacity = '1'); };
-    media.addEventListener?.('change', handlePRM);
+    media.addEventListener ? media.addEventListener('change', handlePRM) : media.addListener(handlePRM);
 
     return () => {
       window.removeEventListener('pointermove', onPointer);
       window.removeEventListener('touchmove', onPointer);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
-      media.removeEventListener?.('change', handlePRM);
+      media.removeEventListener ? media.removeEventListener('change', handlePRM) : media.removeListener(handlePRM);
     };
   }, []);
 
@@ -173,8 +211,8 @@ export default function HeroOrbitale() {
         ref={overlayRef}
         aria-hidden
         style={{
-          position:'fixed', inset:0, width:'100%', height:'100dvh',
-          pointerEvents:'none', zIndex:0, opacity:1, // l'opacità verrà gestita via JS
+          position:'fixed', inset:0, width:'100%', height:'100svh', // svh evita i “salti” su mobile
+          pointerEvents:'none', zIndex:0, opacity:1,
           overflow:'visible', background:'transparent'
         }}
       >
@@ -226,7 +264,7 @@ export default function HeroOrbitale() {
       </div>
 
       {/* SPACER nel flow (mantiene layout invariato) */}
-      <div style={{height:'100dvh'}} />
+      <div style={{height:'100svh'}} />
     </>
   );
 }
