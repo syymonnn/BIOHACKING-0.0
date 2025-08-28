@@ -4,6 +4,10 @@ import matter from 'gray-matter';
 import Link from 'next/link';
 import Layout from '../../components/Layout';
 import { useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+// 3D brain model rendered client-side only
+const BrainModel = dynamic(() => import('../../components/BrainModel'), { ssr: false });
 
 export default function Academy({ items, allTags }) {
   const [q, setQ] = useState('');
@@ -21,6 +25,8 @@ export default function Academy({ items, allTags }) {
   return (
     <Layout title="Academy">
       <h1>Æ‑HUMAN Academy</h1>
+      {/* Stylized 3D brain */}
+      <BrainModel />
       <p style={{color:'var(--muted)'}}>Solo contenuti basati su evidenze: articoli, ricerche, protocolli.</p>
 
       {/* Controls */}
