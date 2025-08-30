@@ -1,0 +1,6 @@
+How to add a new topic
+Dichiara la chiave in TopicKey aggiungendo una proprietà con il nome e lo slug del nuovo topic
+
+Definisci la palette inserendo un oggetto con colori e gradienti corrispondenti in TOPIC_THEME
+
+Mappa le etichette aggiornando getTopicFromTags per restituire la nuova chiave quando il tag associato è presente

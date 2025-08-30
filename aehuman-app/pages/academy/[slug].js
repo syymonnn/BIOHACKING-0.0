@@ -5,6 +5,7 @@ import matter from "gray-matter";
 import { marked } from "marked";
 import Layout from "../../components/Layout";
 import { useEffect, useState } from "react";
+import { TOPIC_THEME, getTopicFromTags } from "../../lib/topics";
 
 // --- Marked: heading IDs + anchor link
 function slugify(str = "") {
@@ -19,6 +20,8 @@ marked.setOptions({ renderer, gfm: true });
 
 export default function Article({ title, html, tags, date, readingTime, hero }) {
   const [progress, setProgress] = useState(0);
+  const topic = getTopicFromTags(tags);
+  const theme = TOPIC_THEME[topic];
 
   // Reading progress
   useEffect(() => {
@@ -61,60 +64,50 @@ export default function Article({ title, html, tags, date, readingTime, hero }) 
 
   return (
     <Layout title={title}>
-      <div aria-hidden className="readingProgress" style={{ transform: `scaleX(${progress / 100})` }} />
-
+      <div
+        aria-hidden
+        className="readingProgress"
+        style={{
+          transform: `scaleX(${progress / 100})`,
+          background: theme.gradient,
+          boxShadow: theme.glow,
+        }}
+      />
       <article className="articleWrap">
-        {/* HERO + OVERLAY (title + meta + tag) */}
+        {/* HERO IMAGE */}
         {hero ? (
           <div className="heroWrap">
             <img src={hero} alt="" className="heroImg" />
-            <div className="heroGradient" />
-            <div className="heroOverlay glass">
-              <h1 className="articleTitle">{title}</h1>
-              <div className="metaRow">
-                {date ? <time dateTime={date}>{formatDate(date)}</time> : null}
-                {readingTime ? <span>• {readingTime}</span> : null}
-              </div>
-              {tags?.length ? (
-                <div className="tagRow">
-                  {tags.map((t) => (
-                    <a
-                      key={t}
-                      href={`/academy?tag=${encodeURIComponent(t)}`}
-                      className="tagPill"
-                      aria-label={`Tag ${t}`}
-                    >
-                      {t}
-                    </a>
-                  ))}
-                </div>
-              ) : null}
-            </div>
+            <div className="heroGradient" />            
           </div>
-        ) : (
-          // Fallback se non c'è hero
-          <header className="articleHeader glass">
-            <div className="headTexts">
-              <h1 className="articleTitle">{title}</h1>
-              <div className="metaRow">
-                {date ? <time dateTime={date}>{formatDate(date)}</time> : null}
-                {readingTime ? <span>• {readingTime}</span> : null}
-              </div>
+        ) : null}
+
+        <header className="articleHead">
+          <h1 className="articleTitle">{title}</h1>
+          <div className="metaRow">
+            {date ? <time dateTime={date}>{formatDate(date)}</time> : null}
+            {readingTime ? <span>• {readingTime}</span> : null}
+          </div>
+          {tags?.length ? (
+            <div className="tagRow">
+              {tags.map((t) => (
+                <a
+                  key={t}
+                  href={`/academy?tag=${encodeURIComponent(t)}`}
+                  className="tagPill"
+                  aria-label={`Tag ${t}`}
+                >
+                  {t}
+                </a>
+              ))}
             </div>
-            {tags?.length ? (
-              <div className="tagRow">
-                {tags.map((t) => (
-                  <a key={t} href={`/academy?tag=${encodeURIComponent(t)}`} className="tagPill">
-                    {t}
-                  </a>
-                ))}
-              </div>
+            
+          
             ) : null}
           </header>
-        )}
 
         {/* BODY */}
-        <div id="article-body" className="prose glass">
+        <div id="article-body" className="prose">
           <div dangerouslySetInnerHTML={{ __html: html }} />
         </div>
       </article>

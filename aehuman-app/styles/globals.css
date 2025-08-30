@@ -119,6 +119,71 @@ main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
   backdrop-filter: blur(6px);
 }
 
+.tag-bubble{
+  position:absolute;
+  --tx:-50%;
+  --ty:-50%;
+  --ty-bounce:0px;
+  transform:translate(var(--tx), var(--ty)) translateY(var(--ty-bounce));
+  padding:.5rem 1rem;
+  border-radius:12px;
+  font-weight:700;
+  color:#0b0b0f;
+  cursor:pointer;
+  animation:tagBounce 3s ease-in-out infinite;
+  transition:transform .2s ease, filter .2s ease;
+}
+.tag-bubble:hover{
+  transform:translate(var(--tx), var(--ty)) translateY(var(--ty-bounce)) scale(1.05);
+  filter:brightness(1.1);
+}
+@keyframes tagBounce{
+  0%,100%{ --ty-bounce:-3px; }
+  50%{ --ty-bounce:3px; }
+}
+
+/* Neon tagline under Academy title */
+.ae-tagline{
+  font-weight:500;                      /* meno grassetto */
+  margin:.8rem 0 1.2rem;
+  font-size:1.3rem;
+  color:transparent;
+  -webkit-text-stroke:1px rgba(255,255,255,.25); /* contorno più leggero */
+  text-shadow:
+    0 0 4px rgba(0,255,209,.35),        /* shadow verde acqua */
+    0 0 10px rgba(0,255,209,.15);       /* alone soffuso */
+}
+.ae-tagline:hover{
+  -webkit-text-stroke:1px rgba(255,255,255,.45);
+  text-shadow:
+    0 0 6px rgba(0,255,209,.55),
+    0 0 14px rgba(0,255,209,.25);
+}
+
+/* Floating tag buttons around brain */
+.tag-bubble{
+  position:absolute;
+  --tx:-50%;
+  --ty:-50%;
+  --ty-bounce:0px;
+  transform:translate(var(--tx), var(--ty)) translateY(var(--ty-bounce));
+  padding:.5rem 1rem;
+  border-radius:12px;
+  font-weight:700;
+  color:#0b0b0f;
+  cursor:pointer;
+  animation:tagBounce 3s ease-in-out infinite;
+}
+.tag-bubble:hover{
+  transform:translate(var(--tx), var(--ty)) translateY(var(--ty-bounce)) scale(1.05);
+  filter:brightness(1.1);
+}
+@keyframes tagBounce{
+  0%,100%{ --ty-bounce:-3px; }
+  50%{ --ty-bounce:3px; }
+}
+
+
 /* Navbar (sticky) */
 .navbar{
   position: sticky; top:0; z-index: 100;
@@ -187,27 +252,10 @@ main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
     radial-gradient(60% 60% at 50% 30%, rgba(0,255,170,.10), transparent 60%);
 }
 
-.articleWrap .heroOverlay{
-  position:absolute; left:14px; right:14px; bottom:14px;
-  padding:.9rem 1rem; border-radius:14px;
-  background: rgba(8,8,12,.55);
-  border:1px solid rgba(255,255,255,.12);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 10px 24px rgba(0,0,0,.25);
-}
-
-.articleWrap .heroOverlay .articleTitle{ margin:0 0 .35rem; line-height:1.12; letter-spacing:.2px; }
-.articleWrap .heroOverlay .metaRow{ margin-bottom:.5rem; opacity:.9; font-size:.9rem; display:flex; gap:.6rem; align-items:center; }
-.articleWrap .heroOverlay .tagRow{ display:flex; flex-wrap:wrap; gap:.5rem .6rem; align-items:center; }
-
-/* ---------- FALLBACK HEADER (no hero) ---------- */
-.articleWrap .articleHeader{
-  display:grid; grid-template-columns:1fr auto; align-items:end;
-  gap:.7rem 1rem; padding:1rem 1.2rem; border-radius:16px; margin-bottom:1.2rem;
-}
-@media (max-width:720px){ .articleWrap .articleHeader{ grid-template-columns:1fr; align-items:start; } }
-.articleWrap .headTexts{ min-width:0; }
+/* ---------- ARTICLE HEADER (title + meta) ---------- */
+.articleHead{ margin:1.4rem 0 1.6rem; text-align:center; }
+.articleHead .metaRow{ justify-content:center; opacity:.85; }
+.articleHead .tagRow{ justify-content:center; }
 .articleWrap .articleTitle{ margin:0 0 .4rem; line-height:1.1; letter-spacing:.2px; }
 .articleWrap .metaRow{ opacity:.85; font-size:.9rem; display:flex; gap:.6rem; align-items:center; }
 .articleWrap .tagRow{ display:flex; flex-wrap:wrap; gap:.5rem .6rem; align-items:center; }
@@ -231,7 +279,7 @@ main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
 }
 
 /* ---------- PROSE ---------- */
-.articleWrap .prose{ padding:1.2rem; border-radius:16px; line-height:1.65; font-size:1.02rem; }
+.articleWrap .prose{ line-height:1.65; font-size:1.02rem; max-width:800px; margin:0 auto; }
 .articleWrap .prose h1,
 .articleWrap .prose h2,
 .articleWrap .prose h3,

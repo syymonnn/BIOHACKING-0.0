@@ -3,64 +3,201 @@ import path from 'path';
 import matter from 'gray-matter';
 import Link from 'next/link';
 import Layout from '../../components/Layout';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import Script from 'next/script';
+import { TOPIC_THEME, getTopicFromTags } from '../../lib/topics';
 
 export default function Academy({ items, allTags }) {
   const [q, setQ] = useState('');
   const [tag, setTag] = useState('all');
+  const wrapRef = useRef(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+
+  const tagsWithAll = useMemo(() => ['all', ...allTags], [allTags]);
+
+  useEffect(() => {
+    function update() {
+      if (wrapRef.current) {
+        const rect = wrapRef.current.getBoundingClientRect();
+        setSize({ w: rect.width, h: rect.height });
+      }
+    }
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  const positions = useMemo(() => {
+    const { w, h } = size;
+    if (!w || !h) return [];
+    const radius = Math.min(w, h) / 2 + 50;
+    const cx = w / 2;
+    const cy = h / 2;
+    return tagsWithAll.map((_, i) => {
+      const angle = (i / tagsWithAll.length) * Math.PI * 2;
+      return {
+        left: cx + radius * Math.cos(angle),
+        top: cy + radius * Math.sin(angle),
+      };
+    });
+  }, [size, tagsWithAll]);
 
   const filtered = useMemo(() => {
     const qn = q.trim().toLowerCase();
-    return items.filter(item => {
-      const matchQ = qn === '' || (item.title.toLowerCase().includes(qn) || item.excerpt.toLowerCase().includes(qn));
+    return items.filter((item) => {
+      const matchQ =
+        qn === '' ||
+        item.title.toLowerCase().includes(qn) ||
+        item.excerpt.toLowerCase().includes(qn);
       const matchTag = tag === 'all' || item.tags.includes(tag);
       return matchQ && matchTag;
     });
   }, [q, tag, items]);
 
+  // Fallback tema per sicurezza (nel caso 'all' o tag strani)
+  const FALLBACK_THEME =
+    TOPIC_THEME?.DEFAULT ?? {
+      gradient: 'linear-gradient(135deg,#6c43f3,#d066ff)',
+      glow: '0 0 12px rgba(208,102,255,.5)',
+      text: '#fff',
+      accent: '#d066ff',
+      accentSoft: 'rgba(208,102,255,.15)',
+    };
+
   return (
     <Layout title="Academy">
-      <h1>Æ‑HUMAN Academy</h1>
-      <p style={{color:'var(--muted)'}}>Solo contenuti basati su evidenze: articoli, ricerche, protocolli.</p>
+      <Script
+        type="module"
+        src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+        strategy="afterInteractive"
+      />
+      <h1>Æ-HUMAN Academy</h1>
 
-      {/* Controls */}
-      <div className="glass" style={{display:'grid', gap:'.8rem', margin:'1rem 0'}}>
+
+      <p id="academy-claim" className="ae-tagline">
+        <span>È un muscolo, allenalo con la conoscenza.</span>
+        <br />
+        <span style={{ display: 'inline-block', marginTop: '12px' }}>
+          Vivi meglio, più a lungo.
+        </span>
+      </p>
+
+      {/* Brain + tags */}
+      <div
+        ref={wrapRef}
+        style={{ position: 'relative', margin: '6rem 0', height: '400px' }}
+      >
+        <model-viewer
+          src="/3d/brain_holo.glb"
+          alt="Æ-HUMAN brain"
+          camera-controls
+          auto-rotate
+          rotation-per-second="20deg"
+          interaction-prompt="none"
+          exposure="1.0"
+          shadow-intensity="0"
+          style={{ width: '100%', height: '100%' }}
+        />
+        {tagsWithAll.map((t, i) => {
+          const pos = positions[i] || { left: 0, top: 0 };
+          const key = t === 'all' ? 'default' : getTopicFromTags([t]);
+          const theme = TOPIC_THEME[key] || FALLBACK_THEME;
+          return (
+            <button
+              key={t}
+              onClick={() => setTag(t)}
+              className="tag-bubble"
+              style={{
+                position: 'absolute',
+                left: pos.left,
+                top: pos.top,
+                transform: 'translate(-50%, -50%)',
+                padding: '.45rem .8rem',
+                borderRadius: '999px',
+                border: '1px solid transparent',
+                background: theme.gradient,
+                boxShadow: theme.glow,
+                color: theme.text,
+                cursor: 'pointer',
+                animationDelay: `${i * 0.2}s`,
+                whiteSpace: 'nowrap',
+                userSelect: 'none',
+              }}
+              aria-pressed={tag === t}
+            >
+              {t === 'all' ? 'Tutti' : t}
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="ae-tagline" style={{ marginTop: '1rem' }}>
+        Solo contenuti basati su evidenze: articoli, ricerche, protocolli.
+      </p>
+
+
+      {/* Search card */}
+      <div className="glass" style={{ margin: '1rem 0', padding: '0.5rem' }}>
         <input
           placeholder="Cerca argomenti (es: sonno, microbiota, training)…"
           value={q}
-          onChange={e=>setQ(e.target.value)}
+          onChange={(e) => setQ(e.target.value)}
           style={{
-            padding:'.9rem 1rem', borderRadius:'12px', border:'1px solid rgba(255,255,255,.2)',
-            background:'rgba(255,255,255,.06)', color:'#fff', outline:'none'
+            width: '100%',
+            padding: '.9rem 1rem',
+            borderRadius: '12px',
+            border: '1px solid rgba(255,255,255,.2)',
+            background: 'rgba(255,255,255,.06)',
+            color: '#fff',
+            outline: 'none',
           }}
         />
-        <div style={{display:'flex', gap:'.6rem', flexWrap:'wrap'}}>
-          <button className="btn" onClick={()=>setTag('all')}>Tutti</button>
-          {allTags.map(t => (
-            <button key={t} className="btn" onClick={()=>setTag(t)}>{t}</button>
-          ))}
-        </div>
       </div>
 
       {/* List */}
-      <div style={{
-        display:'grid',
-        gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))',
-        gap:'1rem', marginTop:'1rem'
-      }}>
-        {filtered.map(a=>(
-          <div key={a.slug} className="glass">
-            <h3 style={{marginBottom:'.4rem'}}>{a.title}</h3>
-            <p style={{color:'var(--muted)'}}>{a.excerpt}</p>
-            <div style={{display:'flex', gap:'.4rem', flexWrap:'wrap', margin:'.4rem 0 .8rem'}}>
-              {a.tags.map(t => (
-                <span key={t} style={{
-                  fontSize:'.72rem', padding:'.2rem .5rem', borderRadius:'999px',
-                  background:'rgba(255,255,255,.08)', border:'1px solid rgba(255,255,255,.18)'
-                }}>{t}</span>
-              ))}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '1rem',
+          marginTop: '1rem',
+        }}
+      >
+        {filtered.map((a) => (
+          <div key={a.slug} className="glass" style={{ padding: '1rem' }}>
+            <h3 style={{ marginBottom: '.4rem' }}>{a.title}</h3>
+            <p style={{ color: 'var(--muted)' }}>{a.excerpt}</p>
+            <div
+              style={{
+                display: 'flex',
+                gap: '.4rem',
+                flexWrap: 'wrap',
+                margin: '.4rem 0 .8rem',
+              }}
+            >
+              {a.tags.map((t) => {
+                const key = getTopicFromTags([t]);
+                const theme = TOPIC_THEME[key] || FALLBACK_THEME;
+                return (
+                  <span
+                    key={t}
+                    style={{
+                      fontSize: '.72rem',
+                      padding: '.2rem .5rem',
+                      borderRadius: '999px',
+                      background: theme.accentSoft,
+                      border: `1px solid ${theme.accent || '#888'}`,
+                      color: theme.text,
+                    }}
+                  >
+                    {t}
+                  </span>
+                );
+              })}
             </div>
-            <Link className="btn" href={`/academy/${a.slug}`}>Apri</Link>
+            <Link className="btn" href={`/academy/${a.slug}`}>
+              Apri
+            </Link>
           </div>
         ))}
       </div>
@@ -70,26 +207,29 @@ export default function Academy({ items, allTags }) {
 
 export async function getStaticProps() {
   const dir = path.join(process.cwd(), 'data', 'articles');
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.md'));
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.md'));
 
-  const items = files.map(file => {
+  const items = files.map((file) => {
     const slug = file.replace(/\.md$/, '');
     const raw = fs.readFileSync(path.join(dir, file), 'utf8');
     const { data, content } = matter(raw);
-    const title = (content.split('\n')[0] || slug).trim();
-    const body = content.split('\n').slice(2).join(' ');
+    const lines = content.split('\n');
+    const title = (lines[0] || slug).trim();
+    const body = lines.slice(2).join(' ');
     const excerpt = body.split(' ').slice(0, 40).join(' ') + '…';
     return {
       slug,
       title,
       excerpt,
-      tags: Array.isArray(data.tags) ? data.tags : []
+      tags: Array.isArray(data.tags) ? data.tags : [],
     };
   });
 
-  const tagSet = new Set();
-  items.forEach(i => i.tags.forEach(t => tagSet.add(t)));
-  const allTags = Array.from(tagSet);
+  const allTags = Array.from(
+    new Set(items.flatMap((i) => i.tags).filter(Boolean))
+  ).sort();
 
-  return { props: { items, allTags } };
+  return {
+    props: { items, allTags },
+  };
 }
