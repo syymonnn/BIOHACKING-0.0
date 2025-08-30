@@ -30,9 +30,37 @@ export default function Academy({ items, allTags }) {
   const positions = useMemo(() => {
     const { w, h } = size;
     if (!w || !h) return [];
-    const radius = Math.min(w, h) / 2 + 50;
+
     const cx = w / 2;
     const cy = h / 2;
+    
+    const isMobile = w < 768;
+
+    if (isMobile) {
+      const maxRadius = Math.min(cx, cy) - 40; // evita overflow lato/sopra/sotto
+      const gap = 80; // piu spazio rispetto al cervello
+      const margin = Math.PI / 58; // evita tag vicini al centro
+      const half = Math.ceil(tagsWithAll.length / 2);
+      return tagsWithAll.map((_, i) => {
+        const isTop = i < half;
+        const arcIndex = isTop ? i : i - half;
+        const arcCount = isTop ? half : tagsWithAll.length - half;
+        const angleStart = isTop ? Math.PI + margin : margin;
+        const angleEnd = isTop ? 2 * Math.PI - margin : Math.PI - margin;
+        const angleStep = (angleEnd - angleStart) / (arcCount + 1);
+        const requiredRadius = 100 / (2 * Math.sin(angleStep / 2)); // evita sovrapposizioni
+        const radius = Math.min(maxRadius, requiredRadius);
+        const angle = angleStart + (arcIndex + 1) * angleStep;
+        const yCenter = isTop ? cy - gap : cy + gap;
+        return {
+          left: cx + radius * Math.cos(angle),
+          top: yCenter + radius * Math.sin(angle),
+        };
+      });
+    }
+
+    const radius = Math.min(w, h) / 2 + 50; // layout desktop originale
+
     return tagsWithAll.map((_, i) => {
       const angle = (i / tagsWithAll.length) * Math.PI * 2;
       return {
@@ -155,14 +183,8 @@ export default function Academy({ items, allTags }) {
       </div>
 
       {/* List */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '1rem',
-          marginTop: '1rem',
-        }}
-      >
+      <div className="articlesGrid">
+      
         {filtered.map((a) => (
           <div key={a.slug} className="glass" style={{ padding: '1rem' }}>
             <h3 style={{ marginBottom: '.4rem' }}>{a.title}</h3>
@@ -201,6 +223,26 @@ export default function Academy({ items, allTags }) {
           </div>
         ))}
       </div>
+      <style jsx>{`
+        .articlesGrid {
+          display: grid;
+          gap: 1rem;
+          margin-top: 1rem;
+          max-width: 1050px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        @media (min-width: 768px) {
+          .articlesGrid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        @media (max-width: 767px) {
+          .articlesGrid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
     </Layout>
   );
 }

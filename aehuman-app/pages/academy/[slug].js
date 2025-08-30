@@ -42,24 +42,32 @@ export default function Article({ title, html, tags, date, readingTime, hero }) 
     const root = document.querySelector("#article-body > div");
     if (!root) return;
     const nodes = Array.from(root.childNodes);
-    const wrapper = document.createElement("div");
-    wrapper.className = "sections";
-    root.parentNode.replaceChild(wrapper, root);
-
-    let section = document.createElement("section");
-    section.className = "sectionCard glass";
-    wrapper.appendChild(section);
+    const fragment = document.createDocumentFragment();
+    let buffer = [];
 
     nodes.forEach((node) => {
       if (node.nodeType === 1 && node.tagName === "H2") {
-        section = document.createElement("section");
-        section.className = "sectionCard glass";
-        wrapper.appendChild(section);
-        section.appendChild(node);
+        if (buffer.length) {
+          const wrap = document.createElement("div");
+          wrap.className = "sectionCard glass";
+          buffer.forEach((n) => wrap.appendChild(n));
+          fragment.appendChild(wrap);
+        }
+        buffer = [node];
       } else {
-        section.appendChild(node);
+        buffer.push(node);
       }
     });
+    
+    if (buffer.length) {
+      const wrap = document.createElement("div");
+      wrap.className = "sectionCard glass";
+      buffer.forEach((n) => wrap.appendChild(n));
+      fragment.appendChild(wrap);
+    }
+
+    root.innerHTML = "";
+    root.appendChild(fragment);
   }, [html]);
 
   return (
@@ -82,14 +90,14 @@ export default function Article({ title, html, tags, date, readingTime, hero }) 
           </div>
         ) : null}
 
-        <header className="articleHead">
-          <h1 className="articleTitle">{title}</h1>
-          <div className="metaRow">
+        <header style={{ textAlign: 'center' }}>
+          <h1>{title}</h1>
+          <div className="metaRow" style={{ display: 'flex', justifyContent: 'center', gap: '.4rem' }}>
             {date ? <time dateTime={date}>{formatDate(date)}</time> : null}
             {readingTime ? <span>• {readingTime}</span> : null}
           </div>
           {tags?.length ? (
-            <div className="tagRow">
+            <div className="tagRow" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '.4rem' }}>
               {tags.map((t) => (
                 <a
                   key={t}
