@@ -1,2 +1,2 @@
 # Æ-HUMAN
-app 0.0
+web app 0.0
