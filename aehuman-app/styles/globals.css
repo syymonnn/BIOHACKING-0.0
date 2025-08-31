@@ -32,6 +32,7 @@ a { color: inherit; text-decoration: none; }
   --radius-2: 16px;
   --shadow-1: 0 8px 30px rgba(0,0,0,.25);
   --container: 1100px;
+  --navbar-height: 64px;
 
   /* Typography scale */
   --fs-0: 0.875rem;
@@ -80,6 +81,7 @@ h3 { font-size: 1.18rem; }
 /* Layout container */
 main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
 @media (min-width: 768px){ main{ padding: 2rem; }}
+@media (max-width: 768px){ main{ padding-top: calc(1.2rem + var(--navbar-height)); }}
 
 /* ================= 2) Components ====================== */
 
@@ -184,7 +186,7 @@ main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
 }
 
 
-/* Navbar (sticky) */
+/* Navbar (sticky / fixed on mobile) */
 .navbar{
   position: sticky; top:0; z-index: 100;
   display:flex; align-items:center; justify-content:space-between;
@@ -192,6 +194,13 @@ main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
   background: rgba(8,8,12,0.55);
   border-bottom: 1px solid rgba(255,255,255,.06);
   backdrop-filter: blur(18px);
+}
+@media (max-width: 768px){
+  .navbar{
+    position: fixed;
+    left:0; right:0;
+    width: 100%;
+  }
 }
 
 /* Cards (generic) */
@@ -373,8 +382,8 @@ main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
 
   /* tag più piccole (se hai ancora inline padding tieni !important) */
   .tag-bubble {
-    font-size: 0.72rem !important;
-    padding: 0.2rem 0.52rem !important;
+    font-size: 1rem !important;
+    padding: 0.35rem 0.62rem !important;
     border-radius: 999px;
     white-space: nowrap;
   }
