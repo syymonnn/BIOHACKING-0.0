@@ -5,7 +5,7 @@ import matter from "gray-matter";
 import { marked } from "marked";
 import Layout from "../../components/Layout";
 import { useEffect, useState } from "react";
-import { TOPIC_THEME, getTopicFromTags } from "../../lib/topics";
+import { TOPIC_THEME, TopicKey, getTopicFromTags } from "../../lib/topics";
 
 // --- Marked: heading IDs + anchor link
 function slugify(str = "") {
@@ -20,8 +20,11 @@ marked.setOptions({ renderer, gfm: true });
 
 export default function Article({ title, html, tags, date, readingTime, hero }) {
   const [progress, setProgress] = useState(0);
-  const topic = getTopicFromTags(tags);
-  const theme = TOPIC_THEME[topic];
+  const topic = getTopicFromTags(tags) || TopicKey.DEFAULT;
+  let theme = TOPIC_THEME[topic];
+  if (!theme) {
+    theme = TOPIC_THEME[TopicKey.DEFAULT];
+  }
 
   // Reading progress
   useEffect(() => {

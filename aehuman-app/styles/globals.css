@@ -354,3 +354,34 @@ main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
 @keyframes ae-gentle-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.5; } }
 @keyframes ae-slow-drift  { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @keyframes ae-fade-glow   { 0%, 100% { opacity: 0.15; text-shadow: none; } 50% { opacity: 0.24; text-shadow: 0 0 4px rgba(100,149,237,.25); } }
+
+/* ===== MOBILE FIX (<= 420px: iPhone 12/13/14 Pro) ===== */
+@media (max-width: 420px) {
+  html, body { max-width: 100%; overflow-x: hidden; }
+
+  /* contenitore page */
+  :root { --container: 100%; }        /* invece di 1100px */
+  main { max-width: 100% !important; padding: 0.9rem; }
+
+  /* navbar non deve far sforare */
+  .navbar { max-width: 100%; overflow-x: auto; }
+  .navbar::-webkit-scrollbar { display: none; }
+
+  /* wrapper del cervello: niente sbordi */
+  /* (in JSX gli hai messo overflow:hidden; qui ribadiamo lato CSS) */
+  [ref="wrapRef"], .brainWrap { overflow: hidden; } /* se usi una classe, meglio .brainWrap */
+
+  /* tag più piccole (se hai ancora inline padding tieni !important) */
+  .tag-bubble {
+    font-size: 0.72rem !important;
+    padding: 0.2rem 0.52rem !important;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  /* griglia articoli: 1 colonna, nessun overflow */
+  .articlesGrid { grid-template-columns: 1fr !important; max-width: 100% !important; }
+
+  /* immagini/media sempre dentro viewport */
+  img, svg, video, canvas, model-viewer { max-width: 100%; height: auto; display: block; }
+}

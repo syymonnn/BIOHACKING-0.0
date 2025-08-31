@@ -1,5 +1,5 @@
 ---
-id: "A003-2025-08-30-perfect-breakfast"
+id: "A003-2025-08-30-Perfect-Breakfast"
 title: "La colazione perfetta: evoluzione, biochimica e performance"
 date: "2025-08-30"
 tags: ["beakfast", "energy", "longevity", "performance", "nutrition"]

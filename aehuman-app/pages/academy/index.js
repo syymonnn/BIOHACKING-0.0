@@ -19,6 +19,43 @@ export default function Academy({ items }) {
     []
   );
   const tagsWithAll = useMemo(() => ['all', ...allTags], [allTags]);
+  const [tagSizes, setTagSizes] = useState([]);
+
+
+  useEffect(() => {
+    // aspetta un paint: i bottoni devono esistere nel DOM
+    requestAnimationFrame(() => {
+      const els = Array.from(document.querySelectorAll('.tag-bubble'));
+      if (!els.length) return;
+      const sizes = els.map(el => {
+        const r = el.getBoundingClientRect();
+        return { w: r.width, h: r.height };
+      });
+      setTagSizes(sizes);
+    });
+  }, [tagsWithAll.length]);
+
+
+    const tagSizeRef = useRef({ w: 96, h: 36 }); // fallback
+
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll('.tag-bubble'));
+    if (!els.length) return;
+    const w = Math.max(
+      64,
+      Math.round(
+        els.reduce((s, el) => s + el.getBoundingClientRect().width, 0) / els.length
+      )
+    );
+    const h = Math.max(
+      28,
+      Math.round(
+        els.reduce((s, el) => s + el.getBoundingClientRect().height, 0) / els.length
+      )
+    );
+    tagSizeRef.current = { w, h };
+  }, [tagsWithAll.length]);
+
 
   useEffect(() => {
     function update() {
@@ -41,29 +78,75 @@ export default function Academy({ items }) {
     const isMobile = w < 768;
 
     if (isMobile) {
-      const maxRadius = Math.min(cx, cy) - 40; // evita overflow lato/sopra/sotto
-      const gap = 80; // piu spazio rispetto al cervello
-      const margin = Math.PI / 58; // evita tag vicini al centro
-      const half = Math.ceil(tagsWithAll.length / 2);
-      return tagsWithAll.map((_, i) => {
-        const isTop = i < half;
-        const arcIndex = isTop ? i : i - half;
-        const arcCount = isTop ? half : tagsWithAll.length - half;
-        const angleStart = isTop ? Math.PI + margin : margin;
-        const angleEnd = isTop ? 2 * Math.PI - margin : Math.PI - margin;
-        const angleStep = (angleEnd - angleStart) / (arcCount + 1);
-        const requiredRadius = 100 / (2 * Math.sin(angleStep / 2)); // evita sovrapposizioni
-        const radius = Math.min(maxRadius, requiredRadius);
-        const angle = angleStart + (arcIndex + 1) * angleStep;
-        const yCenter = isTop ? cy - gap : cy + gap;
-        return {
-          left: cx + radius * Math.cos(angle),
-          top: yCenter + radius * Math.sin(angle),
-        };
-      });
-    }
+    const GAP_X = 10;           // spazio orizzontale tra bubble
+    const GAP_Y = 10;           // spazio verticale tra righe
+    const MARGIN_SIDE = 12;     // margine laterale
+    const cx = w / 2, cy = h / 2;
 
-    const radius = Math.min(w, h) / 2 + 50; // layout desktop originale
+    // quanto staccare il “blocco righe” dal cervello
+    const tagH = (tagSizes[0]?.h ?? 36);
+    const gapY = Math.max(120, Math.floor(h * 0.42)); // aumenta se tocca il cervello
+
+    // larghezze reali in ordine (fallback 90)
+    const widths = tagsWithAll.map((_, i) => tagSizes[i]?.w ?? 90);
+
+    // Pack su più righe entro MAX_W
+    const MAX_W = Math.max(160, w - 2 * MARGIN_SIDE);
+    const rows = [];
+    let cur = [], curW = 0;
+
+    widths.forEach((ww, i) => {
+      const need = (cur.length ? GAP_X : 0) + ww;
+      if (curW + need > MAX_W && cur.length) {
+        rows.push(cur);
+        cur = [{ i, ww }];
+        curW = ww;
+      } else {
+        cur.push({ i, ww });
+        curW += need;
+      }
+    });
+    if (cur.length) rows.push(cur);
+
+    // Dividi le righe metà sopra (vicine al cervello) e metà sotto
+    const halfRows = Math.ceil(rows.length / 2);
+    const topRows = rows.slice(0, halfRows);
+    const botRows = rows.slice(halfRows);
+
+    // Helper: posiziona una riga centrata e clampata ai lati
+    const placeRow = (rowItems, y) => {
+      const rowW = rowItems.reduce((s, it, k) => s + it.ww + (k ? GAP_X : 0), 0);
+      let startX = cx - rowW / 2;
+      // clamp ai margini
+      startX = Math.min(Math.max(startX, MARGIN_SIDE), w - MARGIN_SIDE - rowW);
+
+      const positions = [];
+      let x = startX;
+      rowItems.forEach((it) => {
+        const centerX = x + it.ww / 2;
+        positions.push([it.i, { left: centerX, top: y }]); // left centrato
+        x += it.ww + GAP_X;
+      });
+      return positions;
+    };
+
+    // Costruisci posizioni (righe dalla più vicina al cervello verso l’esterno)
+    const posByIndex = new Array(tagsWithAll.length);
+    topRows.forEach((rowItems, idx) => {
+      const y = cy - gapY - idx * (tagH + GAP_Y);
+      placeRow(rowItems, y).forEach(([i, p]) => { posByIndex[i] = p; });
+    });
+    botRows.forEach((rowItems, idx) => {
+      const y = cy + gapY + idx * (tagH + GAP_Y);
+      placeRow(rowItems, y).forEach(([i, p]) => { posByIndex[i] = p; });
+    });
+
+    return posByIndex;
+  }
+
+
+
+    const radius = Math.min(w, h) / 2 + 55; // layout desktop originale
 
     return tagsWithAll.map((_, i) => {
       const angle = (i / tagsWithAll.length) * Math.PI * 2;
@@ -86,6 +169,7 @@ export default function Academy({ items }) {
     });
   }, [q, tag, items]);
 
+  
   // Fallback tema per sicurezza (nel caso 'all' o tag strani)
   const FALLBACK_THEME =
     TOPIC_THEME[TopicKey.DEFAULT] ?? {
@@ -191,9 +275,9 @@ export default function Academy({ items }) {
         src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
         strategy="afterInteractive"
       />
-      <h1>Æ-HUMAN Academy</h1>
+      <h1 style={{ marginLeft: '8px' }}>Æ-HUMAN Academy</h1>
 
-      <p id="academy-claim" className="ae-tagline">
+      <p id="academy-claim" className="ae-tagline" style={{ marginLeft: '8px' }}>
         <span>È un muscolo, allenalo con la conoscenza.</span>
         <br />
         <span style={{ display: 'inline-block', marginTop: '12px' }}>
@@ -233,7 +317,6 @@ export default function Academy({ items }) {
                 left: pos.left,
                 top: pos.top,
                 transform: 'translate(-50%, -50%)',
-                padding: '.45rem .8rem',
                 borderRadius: '999px',
                 border: '1px solid transparent',
                 background: theme.gradient,
@@ -257,7 +340,7 @@ export default function Academy({ items }) {
       </p>
 
       {/* Search card */}
-      <div className="glass" style={{ margin: '1rem 0', padding: '0.5rem' }}>
+      <div className="glass" style={{ margin: '4rem 0', padding: '0.4rem' }}>
         <input
           placeholder="Cerca argomenti (es: sonno, microbiota, training)…"
           value={q}

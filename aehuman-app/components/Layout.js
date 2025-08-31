@@ -15,17 +15,25 @@ export default function Layout({ children, title = 'Æ‑HUMAN' }) {
         <meta name="robots" content="index,follow" />
 
         {/* Viewport “giusto” su iOS con notch / Dynamic Island */}
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, viewport-fit=cover"
-        />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
 
         {/* Colore UI browser */}
         <meta name="theme-color" content="#0b0b0f" />
 
-        {/* iOS status bar scura e immersive */}
+        {/* PWA-capable: Android/Chrome */}
+        <meta name="mobile-web-app-capable" content="yes" />
+
+        {/* iOS standalone (ancora utile su Safari iOS) */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Æ-HUMAN" />
+
+        {/* Icons + manifest (evita 404 di /favicon.ico) */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
       </Head>
 
       <Header />

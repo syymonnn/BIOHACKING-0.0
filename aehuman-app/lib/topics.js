@@ -1,4 +1,4 @@
-const TopicKey = {  
+export const TopicKey = {  
   SLEEP: 'sleep',
   COLD: 'cold',
   LONGEVITY: 'longevity',
@@ -9,7 +9,7 @@ const TopicKey = {
   DEFAULT: 'default'
 };
 
-const TOPIC_THEME = {
+export const TOPIC_THEME = {
   [TopicKey.SLEEP]: {
     accent: '#4ea8de',
     accentSoft: 'rgba(78,168,222,.15)',
@@ -24,21 +24,21 @@ const TOPIC_THEME = {
     glow: '0 0 12px rgba(0,255,209,.5)',
     text: '#e8fffa',
     ring: '0 0 0 3px rgba(0,255,209,.3)',
-    gradient: 'linear-gradient(135deg,#00ffd1,#a3ff12)'
+    gradient: 'linear-gradient(135deg, #ff6b35 0%, #7fb069 50%, #0d1b2a 100%)'
   },
   [TopicKey.LONGEVITY]: {
     accent: '#ffe869',
     accentSoft: 'rgba(255,232,105,.15)',
     glow: '0 0 12px rgba(255,232,105,.5)',
-    text: '#fffceb',
+    text: '#b7af86ff',
     ring: '0 0 0 3px rgba(255,232,105,.3)',
     gradient: 'linear-gradient(135deg,#ffe869,#ffb703)'
   },
   [TopicKey.PERFORMANCE]: {
-    accent: '#a3ff12',
+    accent: '#51ff12ff',
     accentSoft: 'rgba(163,255,18,.15)',
     glow: '0 0 12px rgba(163,255,18,.5)',
-    text: '#faffeb',
+    text: '#f5ffebff',
     ring: '0 0 0 3px rgba(163,255,18,.3)',
     gradient: 'linear-gradient(135deg,#a3ff12,#00ffd1)'
   },
