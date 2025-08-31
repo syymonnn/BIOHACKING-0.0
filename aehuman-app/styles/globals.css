@@ -335,3 +335,22 @@ main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
 }
 .articleWrap .prose h2:hover .anchor,
 .articleWrap .prose h3:hover .anchor{ opacity:.8; }
+
+/* === LETTERE BACKGROUND (GLOBAL) === */
+.backgroundArticle .letter {
+  position: absolute;
+  font-family: 'Courier New', monospace;
+  color: rgba(160, 200, 255, 0.42); /* VISIBILITÀ: alza/abbassa qui */
+  font-weight: 300;
+  transition: all 0.25s ease;
+  user-select: none;
+  will-change: transform, color, text-shadow;
+}
+
+.backgroundArticle .center-dense { font-size: 14px; animation: ae-gentle-pulse 4s infinite ease-in-out; }
+.backgroundArticle .medium-zone  { font-size: 12px; animation: ae-slow-drift 8s infinite ease-in-out; }
+.backgroundArticle .outer-sparse { font-size: 10px; animation: ae-fade-glow 6s infinite ease-in-out; }
+
+@keyframes ae-gentle-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.5; } }
+@keyframes ae-slow-drift  { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes ae-fade-glow   { 0%, 100% { opacity: 0.15; text-shadow: none; } 50% { opacity: 0.24; text-shadow: 0 0 4px rgba(100,149,237,.25); } }
