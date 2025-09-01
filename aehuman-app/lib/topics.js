@@ -78,12 +78,12 @@ export const TOPIC_THEME = {
 
 export const TOPIC_TAGS = {
   [TopicKey.COLD]: ['cold'],
-  [TopicKey.LONGEVITY]: ['longevity', 'biohacking', 'science', 'self-tracking'],
+  [TopicKey.LONGEVITY]: ['longevity', 'biohacking', 'self-tracking'],
   [TopicKey.PERFORMANCE]: ['performance', 'energy'],
   [TopicKey.SLEEP]: ['sleep'],
-  [TopicKey.BRAIN]: ['brain'],
+  [TopicKey.BRAIN]: ['brain', 'mental-health'],
   [TopicKey.RESILIENCE]: ['resilience'],
-  [TopicKey.NUTRITION]: ['nutrition', 'breakfast', 'dinner', 'food', 'lunch']
+  [TopicKey.NUTRITION]: ['nutrition', 'food']
 };
 
 // Build reverse lookup allowing tags to belong to multiple categories

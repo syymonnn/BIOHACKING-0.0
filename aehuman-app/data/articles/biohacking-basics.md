@@ -2,7 +2,7 @@
 id: "A004-2025-08-30-biohacking-basics"
 title: "Biohacking Basics: un'introduzione scientifica"
 date: "2025-08-30"
-tags: ["biohacking", "longevity", "performance", "science", "self-tracking"]
+tags: ["biohacking", "longevity", "performance", "resilience", "self-tracking"]
 excerpt: "Il biohacking non è fantascienza: è l’applicazione del metodo scientifico alla vita quotidiana. Dalla nutrizione al sonno, dagli stressor controllati ai wearables, una guida introduttiva basata su dati e sperimentazione personale."
 hero: "/images/academy/biohacking-basics.jpg"
 author: "Æ Research"

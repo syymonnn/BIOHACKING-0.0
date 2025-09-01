@@ -2,7 +2,7 @@
 id: "A003-2025-08-30-Perfect-Breakfast"
 title: "La colazione perfetta: evoluzione, biochimica e performance"
 date: "2025-08-30"
-tags: ["beakfast", "energy", "longevity", "performance", "nutrition"]
+tags: ["energy", "longevity", "performance", "nutrition"]
 excerpt: "La prima colazione non è solo carburante: è un reset metabolico che influenza attenzione, umore e stabilità energetica per ore. Evidenze scientifiche, falsi miti e best-practice per costruire un rituale di energia sostenibile."
 hero: "/images/academy/perfect-breakfast.jpg"
 author: "Æ Research"
