@@ -2,10 +2,12 @@
 import fs from 'fs';
 import path from 'path';
 import Link from 'next/link';
+import matter from 'gray-matter';
 import Layout from '../components/Layout';
 import PaperOrbitaleLite from '../components/PaperOrbitaleLite';
 import HeroScientificField from '../components/HeroScientificField';
 import MissionSection from '../components/MissionSection'; // ⟵ NEW
+import ArticleCard from '../components/ArticleCard';
 
 export default function Home({ articles }) {
   return (
@@ -47,22 +49,29 @@ export default function Home({ articles }) {
       <section style={{ marginTop: '4rem' }}>
         <h2>Academy Highlights</h2>
         <p>Immergiti nel nostro hub di conoscenza con ricerche, tecniche e strumenti per longevità e wellness.</p>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '1.5rem',
-            marginTop: '2rem',
-          }}
-        >
+        <div className="articlesGrid">
+
           {articles.map((article) => (
-            <div key={article.slug} className="glass">
-              <h3>{article.title}</h3>
-              <p>{article.excerpt}</p>
-              <Link className="btn" href={`/academy/${article.slug}`}>Leggi di più</Link>
-            </div>
+            <ArticleCard key={article.slug} article={article} />
           ))}
         </div>
+        
+        <style jsx>{`
+          .articlesGrid {
+            display: grid;
+            gap: 1rem;
+            margin-top: 2rem;
+            max-width: 1050px;
+            margin-left: auto;
+            margin-right: auto;
+          }
+          @media (min-width: 768px) {
+            .articlesGrid { grid-template-columns: repeat(2, 1fr); }
+          }
+          @media (max-width: 767px) {
+            .articlesGrid { grid-template-columns: 1fr; }
+          }
+        `}</style>
       </section>
 
       {/* Marketplace Preview Section */}
@@ -78,17 +87,22 @@ export default function Home({ articles }) {
 }
 
 export async function getStaticProps() {
-  const articlesDir = path.join(process.cwd(), 'data', 'articles');
-  const filenames = fs.readdirSync(articlesDir).filter((file) => file.endsWith('.md'));
+  const dir = path.join(process.cwd(), 'data', 'articles');
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.md'));
 
-  const articles = filenames.slice(0, 2).map((filename) => {
-    const slug = filename.replace(/\.md$/, '');
-    const fileContents = fs.readFileSync(path.join(articlesDir, filename), 'utf8');
-    const lines = fileContents.split('\n');
-    const title = lines[0] || slug;
-    const body = lines.slice(2).join(' ');
-    const excerpt = body.split(' ').slice(0, 40).join(' ') + '…';
-    return { slug, title, excerpt };
+  const articles = files.slice(0, 2).map((file) => {
+    const slug = file.replace(/\.md$/, '');
+    const raw = fs.readFileSync(path.join(dir, file), 'utf8');
+    const { data, content } = matter(raw);
+
+    const title = data.title ? String(data.title) : slug;
+    const excerpt = data.excerpt
+      ? String(data.excerpt)
+      : content.split(' ').slice(0, 40).join(' ') + '…';
+    const tags = Array.isArray(data.tags) ? data.tags : [];
+
+    return { slug, title, excerpt, tags };
+
   });
 
   return { props: { articles } };
