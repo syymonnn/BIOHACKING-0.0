@@ -204,64 +204,96 @@ export default function Academy({ items }) {
         return 1 - d / maxD;
       };
 
-      // genera lettere
-      const NUM = 80;
-      for (let i = 0; i < NUM; i++) {
-        const el = document.createElement('div');
-        el.className = 'letter';
-        const x = Math.random() * (W - 20);
-        const y = Math.random() * (H - 20);
-        const dens = densityAt(x, y);
+      // lettere generate lazy: prima hover
+      let letters = [];
+      let cardRect = null;
+      const NUM = 20;
+      const RADIUS = 50;
+      const RADIUS_SQ = RADIUS * RADIUS;
 
-        // densità e colore lettere background card articoli
-        if (dens > 0.6) { el.classList.add('center-dense'); el.style.opacity = '0.65'; }
-        else if (dens > 0.3) { el.classList.add('medium-zone'); el.style.opacity = '0.55'; }
-        else { el.classList.add('outer-sparse'); el.style.opacity = '0.77'; }
+      const initLetters = () => {
+        if (letters.length) return;
+        bg.innerHTML = '';
+        cardRect = card.getBoundingClientRect();
+        const W = Math.max(200, Math.floor(cardRect.width));
+        const H = Math.max(160, Math.floor(cardRect.height));
 
-        el.textContent = lettersSet[Math.floor(Math.random() * lettersSet.length)];
-        el.style.left = x + 'px';
-        el.style.top = y + 'px';
-        el.style.animationDelay = (Math.random() * 8) + 's';
-        bg.appendChild(el);
-      }
+        for (let i = 0; i < NUM; i++) {
+          const el = document.createElement('div');
+          el.className = 'letter';
+          const x = Math.random() * (W - 20);
+          const y = Math.random() * (H - 20);
+          const dens = densityAt(x, y);
 
-      // hover: ascolta sul contenitore card
-      const onMove = (e) => {
-        const r = card.getBoundingClientRect();
-        const mx = e.clientX - r.left;
-        const my = e.clientY - r.top;
-        const letters = bg.querySelectorAll('.letter');
-        letters.forEach((el) => {
+          if (dens > 0.6) { el.classList.add('center-dense'); el.style.opacity = '0.65'; }
+          else if (dens > 0.3) { el.classList.add('medium-zone'); el.style.opacity = '0.55'; }
+          else { el.classList.add('outer-sparse'); el.style.opacity = '0.77'; }
+
+          el.textContent = lettersSet[Math.floor(Math.random() * lettersSet.length)];
+          el.style.left = x + 'px';
+          el.style.top = y + 'px';
+          el.style.animationDelay = (Math.random() * 8) + 's';
+          bg.appendChild(el);
+
           const lr = el.getBoundingClientRect();
-          const lx = lr.left - r.left + lr.width / 2;
-          const ly = lr.top - r.top + lr.height / 2;
-          const d = Math.hypot(mx - lx, my - ly);
-          if (d < 50) {
-            const k = 1 - d / 50;
-            el.style.color = `rgba(173, 216, 230, ${0.25 + k * 0.55})`;
-            el.style.textShadow = `0 0 ${Math.round(k * 14)}px rgba(173, 216, 230, ${0.2 + k * 0.6})`;
-            el.style.transform = 'scale(1.1)';
-          } else {
-            el.style.color = '';
-            el.style.textShadow = '';
-            el.style.transform = '';
+          letters.push({
+            el,
+            x: lr.left - cardRect.left + lr.width / 2,
+            y: lr.top - cardRect.top + lr.height / 2,
+            active: false,
+          });
+        }
+      };
+
+      let raf = null;
+      const mouse = { x: 0, y: 0 };
+      const updateLetters = () => {
+        raf = null;
+        letters.forEach((l) => {
+          const dx = mouse.x - l.x;
+          const dy = mouse.y - l.y;
+          const dist2 = dx * dx + dy * dy;
+          if (dist2 < RADIUS_SQ) {
+            const k = 1 - Math.sqrt(dist2) / RADIUS;
+            if (!l.active) l.active = true;
+            l.el.style.color = `rgba(173, 216, 230, ${0.25 + k * 0.55})`;
+            l.el.style.textShadow = `0 0 ${Math.round(k * 14)}px rgba(173, 216, 230, ${0.2 + k * 0.6})`;
+            l.el.style.transform = 'scale(1.1)';
+          } else if (l.active) {
+            l.active = false;
+            l.el.style.color = '';
+            l.el.style.textShadow = '';
+            l.el.style.transform = '';
           }
         });
       };
+
+      const onMove = (e) => {
+        if (!letters.length) initLetters();
+        mouse.x = e.clientX - cardRect.left;
+        mouse.y = e.clientY - cardRect.top;
+        if (!raf) raf = requestAnimationFrame(updateLetters);
+      };
       const onLeave = () => {
-        bg.querySelectorAll('.letter').forEach((el) => {
+        if (raf) cancelAnimationFrame(raf);
+        raf = null;
+        letters.forEach(({ el }) => {
           el.style.color = '';
           el.style.textShadow = '';
           el.style.transform = '';
         });
       };
 
-      card.addEventListener('mousemove', onMove);
+      card.addEventListener('mouseenter', initLetters);
+      card.addEventListener('mousemove', onMove, { passive: true });
       card.addEventListener('mouseleave', onLeave);
       cleanups.push(() => {
+        card.removeEventListener('mouseenter', initLetters);
         card.removeEventListener('mousemove', onMove);
         card.removeEventListener('mouseleave', onLeave);
         bg.innerHTML = '';
+        letters = [];
+        if (raf) cancelAnimationFrame(raf);
       });
     });
 

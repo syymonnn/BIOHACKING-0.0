@@ -351,7 +351,7 @@ main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
   font-family: 'Courier New', monospace;
   color: rgba(160, 200, 255, 0.42); /* VISIBILITÀ: alza/abbassa qui */
   font-weight: 300;
-  transition: all 0.25s ease;
+  transition: color 0.25s ease, text-shadow 0.25s ease, transform 0.25s ease;
   user-select: none;
   will-change: transform, color, text-shadow;
 }
