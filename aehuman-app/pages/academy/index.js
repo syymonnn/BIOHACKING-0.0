@@ -180,125 +180,7 @@ export default function Academy({ items }) {
       accentSoft: 'rgba(208,102,255,.15)',
     };
 
-  // ===== BACKGROUND LETTERE: init su ogni card =====
-  useEffect(() => {
-    const cards = Array.from(document.querySelectorAll('.articleCard'));
-    const cleanups = [];
-
-    const lettersSet = ['S','L','E','P','Æ','A','H','N','T','C','F','M','R','D'];
-
-    cards.forEach((card) => {
-      const bg = card.querySelector('.backgroundArticle');
-      if (!bg) return;
-
-      // pulizia e dimensioni
-      bg.innerHTML = '';
-      const r0 = card.getBoundingClientRect();
-      const W = Math.max(200, Math.floor(r0.width));
-      const H = Math.max(160, Math.floor(r0.height));
-
-      const densityAt = (x, y) => {
-        const cx = W / 2, cy = H / 2;
-        const maxD = Math.hypot(cx, cy);
-        const d = Math.hypot(x - cx, y - cy);
-        return 1 - d / maxD;
-      };
-
-      // lettere generate lazy: prima hover
-      let letters = [];
-      let cardRect = null;
-      const NUM = 20;
-      const RADIUS = 50;
-      const RADIUS_SQ = RADIUS * RADIUS;
-
-      const initLetters = () => {
-        if (letters.length) return;
-        bg.innerHTML = '';
-        cardRect = card.getBoundingClientRect();
-        const W = Math.max(200, Math.floor(cardRect.width));
-        const H = Math.max(160, Math.floor(cardRect.height));
-
-        for (let i = 0; i < NUM; i++) {
-          const el = document.createElement('div');
-          el.className = 'letter';
-          const x = Math.random() * (W - 20);
-          const y = Math.random() * (H - 20);
-          const dens = densityAt(x, y);
-
-          if (dens > 0.6) { el.classList.add('center-dense'); el.style.opacity = '0.65'; }
-          else if (dens > 0.3) { el.classList.add('medium-zone'); el.style.opacity = '0.55'; }
-          else { el.classList.add('outer-sparse'); el.style.opacity = '0.77'; }
-
-          el.textContent = lettersSet[Math.floor(Math.random() * lettersSet.length)];
-          el.style.left = x + 'px';
-          el.style.top = y + 'px';
-          el.style.animationDelay = (Math.random() * 8) + 's';
-          bg.appendChild(el);
-
-          const lr = el.getBoundingClientRect();
-          letters.push({
-            el,
-            x: lr.left - cardRect.left + lr.width / 2,
-            y: lr.top - cardRect.top + lr.height / 2,
-            active: false,
-          });
-        }
-      };
-
-      let raf = null;
-      const mouse = { x: 0, y: 0 };
-      const updateLetters = () => {
-        raf = null;
-        letters.forEach((l) => {
-          const dx = mouse.x - l.x;
-          const dy = mouse.y - l.y;
-          const dist2 = dx * dx + dy * dy;
-          if (dist2 < RADIUS_SQ) {
-            const k = 1 - Math.sqrt(dist2) / RADIUS;
-            if (!l.active) l.active = true;
-            l.el.style.color = `rgba(173, 216, 230, ${0.25 + k * 0.55})`;
-            l.el.style.textShadow = `0 0 ${Math.round(k * 14)}px rgba(173, 216, 230, ${0.2 + k * 0.6})`;
-            l.el.style.transform = 'scale(1.1)';
-          } else if (l.active) {
-            l.active = false;
-            l.el.style.color = '';
-            l.el.style.textShadow = '';
-            l.el.style.transform = '';
-          }
-        });
-      };
-
-      const onMove = (e) => {
-        if (!letters.length) initLetters();
-        mouse.x = e.clientX - cardRect.left;
-        mouse.y = e.clientY - cardRect.top;
-        if (!raf) raf = requestAnimationFrame(updateLetters);
-      };
-      const onLeave = () => {
-        if (raf) cancelAnimationFrame(raf);
-        raf = null;
-        letters.forEach(({ el }) => {
-          el.style.color = '';
-          el.style.textShadow = '';
-          el.style.transform = '';
-        });
-      };
-
-      card.addEventListener('mouseenter', initLetters);
-      card.addEventListener('mousemove', onMove, { passive: true });
-      card.addEventListener('mouseleave', onLeave);
-      cleanups.push(() => {
-        card.removeEventListener('mouseenter', initLetters);
-        card.removeEventListener('mousemove', onMove);
-        card.removeEventListener('mouseleave', onLeave);
-        bg.innerHTML = '';
-        letters = [];
-        if (raf) cancelAnimationFrame(raf);
-      });
-    });
-
-    return () => cleanups.forEach((fn) => fn());
-  }, [filtered.length]);
+  
 
   return (
     <Layout title="Academy">
@@ -393,8 +275,6 @@ export default function Academy({ items }) {
       <div className="articlesGrid">
         {filtered.map((a) => (
           <div key={a.slug} className="glass articleCard">
-            <div className="backgroundArticle" />
-
             <div className="cardContent">
               <div className="cardTop">
                 <h3 className="cardTitle">{a.title}</h3>
@@ -452,22 +332,31 @@ export default function Academy({ items }) {
           .articlesGrid { grid-template-columns: 1fr; }
         }
 
-        .articleCard :global(.backgroundArticle) {
-          position: absolute;
-          inset: 0;
-          border-radius: 12px;
-          overflow: hidden;
-          background: transparent; /* nessuno sfondo */
-          pointer-events: none;    /* non blocca i click */
-          min-height: 180px;
-        }
-
         .articleCard {
           position: relative;
           overflow: hidden;
           padding: 1rem;
           height: 420px;           /* altezza fissa */
           border-radius: 12px;
+        }
+
+        .articleCard::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 12px;
+          pointer-events: none;
+          background:
+            radial-gradient(circle at 30% 20%, rgba(255,255,255,0.1), transparent 60%),
+            radial-gradient(circle at 70% 80%, rgba(255,255,255,0.07), transparent 60%);
+          opacity: 0;
+          transform: scale(1.05);
+          transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .articleCard:hover::before {
+          opacity: 1;
+          transform: scale(1);
         }
 
         .cardContent {
@@ -516,43 +405,6 @@ export default function Academy({ items }) {
       `}</style>
 
 
-
-      {/* Stili GLOBAL per elementi creati via DOM */}
-      <style jsx global>{`
-        .backgroundArticle .letter {
-          position: absolute;
-          font-family: 'Courier New', monospace;
-          color: rgba(160, 200, 255, 0.18); /* molto trasparenti */
-          font-weight: 300;
-          transition: all 0.25s ease;
-          user-select: none;
-          will-change: transform, color, text-shadow;
-        }
-        .backgroundArticle .center-dense {
-          font-size: 14px;
-          animation: ae-gentle-pulse 4s infinite ease-in-out;
-        }
-        .backgroundArticle .medium-zone {
-          font-size: 12px;
-          animation: ae-slow-drift 8s infinite ease-in-out;
-        }
-        .backgroundArticle .outer-sparse {
-          font-size: 10px;
-          animation: ae-fade-glow 6s infinite ease-in-out;
-        }
-        @keyframes ae-gentle-pulse {
-          0%, 100% { opacity: 0.18; }
-          50% { opacity: 0.28; }
-        }
-        @keyframes ae-slow-drift {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-4px); }
-        }
-        @keyframes ae-fade-glow {
-          0%, 100% { opacity: 0.06; text-shadow: none; }
-          50% { opacity: 0.12; text-shadow: 0 0 4px rgba(100, 149, 237, 0.25); }
-        }
-      `}</style>
     </Layout>
   );
 }

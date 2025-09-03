@@ -1,3 +1,5 @@
+// topics.js — identico nelle export; migliora automaticamente SOLO le .tag-bubble
+
 export const TopicKey = {  
   SLEEP: 'sleep',
   COLD: 'cold',
@@ -83,7 +85,7 @@ export const TOPIC_TAGS = {
   [TopicKey.SLEEP]: ['sleep'],
   [TopicKey.BRAIN]: ['brain', 'mental-health'],
   [TopicKey.RESILIENCE]: ['resilience'],
-  [TopicKey.NUTRITION]: ['nutrition', 'food']
+  [TopicKey.NUTRITION]: ['nutrition']
 };
 
 // Build reverse lookup allowing tags to belong to multiple categories
@@ -150,3 +152,169 @@ export function getTopicFromTags(tags = []) {
 
 const topics = { TopicKey, TOPIC_THEME, TOPIC_TAGS, getTagTheme, getTopicFromTags };
 export default topics;
+
+/* ============================================================
+   ENHANCER SOLO PER LE CARD .tag-bubble (cervello 3D)
+   - nessun impatto sul resto della UI
+   - idempotente e senza dipendenze esterne
+   ============================================================ */
+
+function _norm(s) {
+  return String(s || '').normalize('NFKD').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+function _themeFromEl(el) {
+  // priorità a data-tag/topic, fallback al testo (gestisce "Tutti")
+  const raw =
+    el.getAttribute('data-tag') ||
+    el.getAttribute('data-topic') ||
+    el.textContent ||
+    '';
+  const tag = _norm(raw) === 'tutti' ? TopicKey.DEFAULT : _norm(raw);
+  return TOPIC_THEME[tag] || getTagTheme(tag);
+}
+
+function _buildBubbleStyles(theme) {
+  // estetica rivista: glass overlay, doppia cornice soft, glow pulito
+  return {
+    background:
+      `${theme.gradient}, linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.08))`,
+    backgroundBlendMode: 'overlay, normal',
+    border: '1px solid #333',
+
+    boxShadow: `${theme.glow}, 0 12px 28px rgba(0,0,0,.35), 0 0 0 1px ${theme.accentSoft}`,
+    color: theme.text,
+    WebkitBackdropFilter: 'blur(14px) saturate(140%)',
+    backdropFilter: 'blur(14px) saturate(140%)',
+    fontWeight: '800',
+    letterSpacing: '.2px',
+    textShadow: '0 1px 0 rgba(0,0,0,.25)',
+    padding: '10px 18px', // un filo più generoso
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    borderRadius: '999px',
+    transition: 'transform .22s cubic-bezier(.2,.7,.2,1), box-shadow .22s ease, background .22s ease',
+    willChange: 'transform',
+    outline: 'none',
+    whiteSpace: 'nowrap',
+    userSelect: 'none',
+    cursor: 'pointer'
+  };
+}
+
+function _ensureShine(el, theme) {
+  if (el.querySelector(':scope > .ae-shine')) return;
+  const shine = document.createElement('span');
+  shine.className = 'ae-shine';
+  Object.assign(shine.style, {
+    position: 'absolute',
+    inset: 0,
+    borderRadius: 'inherit',
+    pointerEvents: 'none',
+    background:
+      'radial-gradient(140% 120% at 12% 8%, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 60%),' +
+      'linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06))',
+    mixBlendMode: 'screen'
+  });
+  el.appendChild(shine);
+}
+function _ensureBadge(el, theme) {
+  // invece di icona, aggiunge solo un overlay invisibile che intensifica i colori
+  if (el.querySelector(':scope > .ae-badge-boost')) return;
+  const boost = document.createElement('span');
+  boost.className = 'ae-badge-boost';
+  Object.assign(boost.style, {
+    position: 'absolute',
+    inset: 0,
+    borderRadius: 'inherit',
+    background:
+      'radial-gradient(80% 80% at 50% 50%, rgba(255,255,255,.08), transparent 70%)',
+    mixBlendMode: 'overlay',
+    pointerEvents: 'none'
+  });
+  el.appendChild(boost);
+}
+
+function _wireInteractions(el, theme, baseBoxShadow) {
+  if (el.__aeWired) return;
+  el.__aeWired = true;
+
+  el.addEventListener('mousedown', () => {
+    el.style.transform = 'translate(-50%, -50%) scale(.985)';
+  });
+  el.addEventListener('mouseup', () => {
+    el.style.transform = 'translate(-50%, -50%) scale(1)';
+  });
+  el.addEventListener('mouseleave', () => {
+    el.style.transform = 'translate(-50%, -50%) scale(1)';
+  });
+  el.addEventListener('focus', () => {
+    el.style.boxShadow = `${theme.glow}, ${theme.ring}`;
+  });
+  el.addEventListener('blur', () => {
+    el.style.boxShadow = baseBoxShadow;
+  });
+  // hover solo se niente touch
+  el.addEventListener('pointerenter', (e) => {
+    if (e.pointerType === 'mouse') {
+      el.style.transform = 'translate(-50%, -50%) scale(1.02)';
+    }
+  });
+  el.addEventListener('pointerleave', (e) => {
+    if (e.pointerType === 'mouse') {
+      el.style.transform = 'translate(-50%, -50%) scale(1)';
+    }
+  });
+}
+
+function _upgradeOneTagBubble(el) {
+  if (!el || el.__aeUpgraded) return;
+  el.__aeUpgraded = true;
+
+  const theme = _themeFromEl(el);
+  const styles = _buildBubbleStyles(theme);
+
+  // Manteniamo left/top/transform di posizionamento già impostati dal tuo render.
+  const keep = {
+    position: el.style.position || 'absolute',
+    left: el.style.left,
+    top: el.style.top,
+    transform: el.style.transform || 'translate(-50%, -50%)'
+  };
+
+  // Applica nuovi stili
+  Object.assign(el.style, styles, keep);
+
+  // Layer extra (non influiscono sul layout)
+  _ensureShine(el, theme);
+  _ensureBadge(el, theme);
+
+  _wireInteractions(el, theme, styles.boxShadow);
+}
+
+function _upgradeAllTagBubbles() {
+  const els = Array.from(document.querySelectorAll('.tag-bubble'));
+  els.forEach(_upgradeOneTagBubble);
+}
+
+// auto-run: appena il DOM è pronto (Next monta i bottoni subito dopo il paint)
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _upgradeAllTagBubbles);
+  } else {
+    // piccolo rAF per lasciare a React/Next il tempo di impostare gli inline style base
+    requestAnimationFrame(_upgradeAllTagBubbles);
+  }
+  // osserva aggiunte dinamiche (navigazioni client-side)
+  const mo = new MutationObserver((muts) => {
+    for (const m of muts) {
+      m.addedNodes && m.addedNodes.forEach((n) => {
+        if (n.nodeType === 1 && n.matches && n.matches('.tag-bubble')) _upgradeOneTagBubble(n);
+        if (n.nodeType === 1 && n.querySelectorAll) {
+          n.querySelectorAll('.tag-bubble').forEach(_upgradeOneTagBubble);
+        }
+      });
+    }
+  });
+  mo.observe(document.documentElement, { childList: true, subtree: true });
+}
