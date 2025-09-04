@@ -27,7 +27,7 @@ export default function Academy({ items }) {
     requestAnimationFrame(() => {
       const els = Array.from(document.querySelectorAll('.tag-bubble'));
       if (!els.length) return;
-      const sizes = els.map(el => {
+      const sizes = els.map((el) => {
         const r = el.getBoundingClientRect();
         return { w: r.width, h: r.height };
       });
@@ -35,26 +35,6 @@ export default function Academy({ items }) {
     });
   }, [tagsWithAll.length]);
 
-
-    const tagSizeRef = useRef({ w: 96, h: 36 }); // fallback
-
-  useEffect(() => {
-    const els = Array.from(document.querySelectorAll('.tag-bubble'));
-    if (!els.length) return;
-    const w = Math.max(
-      64,
-      Math.round(
-        els.reduce((s, el) => s + el.getBoundingClientRect().width, 0) / els.length
-      )
-    );
-    const h = Math.max(
-      28,
-      Math.round(
-        els.reduce((s, el) => s + el.getBoundingClientRect().height, 0) / els.length
-      )
-    );
-    tagSizeRef.current = { w, h };
-  }, [tagsWithAll.length]);
 
 
   useEffect(() => {
@@ -146,16 +126,31 @@ export default function Academy({ items }) {
 
 
 
-    const radius = Math.min(w, h) / 2 + 55; // layout desktop originale
+    const radius = Math.min(w, h) / 2 + 63; // layout desktop originale
+    const GAP = 25; // distanza costante tra le bubble
+    const fallbackW = tagSizes[0]?.w ?? 90; // larghezza di fallback
 
-    return tagsWithAll.map((_, i) => {
-      const angle = (i / tagsWithAll.length) * Math.PI * 2;
-      return {
+    // larghezze reali + fallback
+    const widths = tagsWithAll.map((_, i) => tagSizes[i]?.w ?? fallbackW);
+
+    // somma di larghezze + gap (verrà scalata per entrare nella circonferenza)
+    const totalLen = widths.reduce((s, ww) => s + ww, 0) + GAP * widths.length;
+    const circumference = 2 * Math.PI * radius;
+    const scale = circumference / totalLen; // i gap sono scalati insieme alle larghezze
+
+    let cur = 0;
+    return widths.map((ww) => {
+      const centerLen = cur + (ww * scale) / 2;
+      const angle = -Math.PI / 2 + centerLen / radius;
+      const pos = {
         left: cx + radius * Math.cos(angle),
         top: cy + radius * Math.sin(angle),
       };
+      cur += (ww + GAP) * scale;
+      return pos;
     });
-  }, [size, tagsWithAll]);
+
+  }, [size, tagsWithAll, tagSizes]);
 
   const filtered = useMemo(() => {
     const qn = q.trim().toLowerCase();
@@ -180,7 +175,24 @@ export default function Academy({ items }) {
       accentSoft: 'rgba(208,102,255,.15)',
     };
 
-  
+  // Segui il puntatore per aggiornare il gradiente del claim
+  useEffect(() => {
+    const svg = document.getElementById('tagline-svg');
+    const grad = document.getElementById('tagline1-glow');
+    if (!svg || !grad) return;
+
+    function handle(e) {
+      const rect = svg.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      grad.setAttribute('cx', x.toFixed(1));
+      grad.setAttribute('cy', y.toFixed(1));
+    }
+
+    svg.addEventListener('pointermove', handle);
+    return () => svg.removeEventListener('pointermove', handle);
+  }, []);
+
 
   return (
     <Layout title="Academy">
@@ -191,12 +203,99 @@ export default function Academy({ items }) {
       />
       <h1 style={{ marginLeft: '8px' }}>Æ-HUMAN Academy</h1>
 
-      <p id="academy-claim" className="ae-tagline" style={{ marginLeft: '8px' }}>
-        <span>È un muscolo, allenalo con la conoscenza.</span>
-        <br />
-        <span style={{ display: 'inline-block', marginTop: '12px' }}>
-          Vivi meglio, più a lungo.
-        </span>
+      <p
+        id="academy-claim"
+        className="ae-tagline"
+        style={{ marginLeft: '8px', letterSpacing: '0.75em', textAlign: 'left' }}>
+        <svg
+          id="tagline-svg"
+          viewBox="0 0 800 80"
+          preserveAspectRatio="xMinYMin meet"
+          style={{ width: '100%', height: '80px', overflow: 'visible' }}
+        >
+          <defs>
+            <radialGradient
+              id="tagline1-glow"
+              gradientUnits="userSpaceOnUse"
+              cx="400"
+              cy="40"
+              r="240"
+            >
+              <stop offset="0%" stopColor="#ffab35ff" stopOpacity="0.18" />
+              <stop offset="35%" stopColor="#a56bff" stopOpacity="0.28" />
+              <stop offset="65%" stopColor="#a56bff" stopOpacity="0.06" />
+              <stop offset="100%" stopColor="#000" stopOpacity="0" />
+            </radialGradient>
+            <linearGradient id="tagline1-base" x1="0" y1="0" x2="800" y2="0">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.22)" />
+              <stop offset="100%" stopColor="rgba(255,255,255,0.22)" />
+            </linearGradient>
+            <filter id="tagline1-soft" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="b" />
+              <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          <text
+            className="logo-bottom-text"
+            x="0"
+            y="30"
+            textAnchor="start"
+            fontFamily="Inter,Segoe UI,Arial,sans-serif"
+            fontWeight="700"
+            fontSize="22"
+            fill="none"
+            stroke="url(#tagline1-base)"
+            strokeWidth="0.6"
+            strokeLinejoin="round"
+          >{`È un muscolo, allenalo con la conoscenza.`}</text>
+          <text
+            className="logo-bottom-text"
+            x="0"
+            y="30"
+            textAnchor="start"
+            fontFamily="Inter,Segoe UI,Arial,sans-serif"
+            fontWeight="700"
+            fontSize="22"
+            fill="none"
+            stroke="url(#tagline1-glow)"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+            opacity="0.85"
+            filter="url(#tagline1-soft)"
+          >{`È un muscolo, allenalo con la conoscenza.`}</text>
+          <text
+            className="logo-bottom-text"
+            x="0"
+            y="60"
+            textAnchor="start"
+            fontFamily="Inter,Segoe UI,Arial,sans-serif"
+            fontWeight="700"
+            fontSize="22"
+            fill="none"
+            stroke="url(#tagline1-base)"
+            strokeWidth="0.6"
+            strokeLinejoin="round"
+          >{`Vivi meglio, più a lungo.`}</text>
+          <text
+            className="logo-bottom-text"
+            x="0"
+            y="60"
+            textAnchor="start"
+            fontFamily="Inter,Segoe UI,Arial,sans-serif"
+            fontWeight="700"
+            fontSize="22"
+            fill="none"
+            stroke="url(#tagline1-glow)"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+            opacity="0.85"
+            filter="url(#tagline1-soft)"
+          >{`Vivi meglio, più a lungo.`}</text>
+        </svg>
       </p>
 
       {/* Brain + tags */}
@@ -250,7 +349,63 @@ export default function Academy({ items }) {
       </div>
 
       <p className="ae-tagline" style={{ marginTop: '1rem' }}>
-        Solo contenuti basati su evidenze: articoli, ricerche, protocolli.
+        <svg
+          viewBox="0 0 800 50"
+          style={{ width: '100%', height: '50px', overflow: 'visible' }}
+        >
+          <defs>
+            <radialGradient id="tagline2-glow" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stopColor="#ffd735ff" stopOpacity="0.2" />
+              <stop offset="35%" stopColor="#524cffff" stopOpacity="0.28" />
+              <stop offset="65%" stopColor="#524cffff" stopOpacity="0.12" />
+              <stop offset="100%" stopColor="#000" stopOpacity="0" />
+            </radialGradient>
+            <linearGradient id="tagline2-base" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.22)" />
+              <stop offset="100%" stopColor="rgba(255,255,255,0.22)" />
+            </linearGradient>
+            <filter id="tagline2-soft" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="b" />
+              <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          <text
+            className="logo-bottom-text tagline-small"
+            x="50%"
+            y="38"
+            textAnchor="middle"
+            fontFamily="Inter,Segoe UI,Arial,sans-serif"
+            fontWeight="700"
+            fontSize="18"
+            fill="none"
+            stroke="url(#tagline2-base)"
+            strokeWidth="0.6"
+            strokeLinejoin="round"
+          >
+            Solo contenuti basati su evidenze: articoli, ricerche, protocolli.
+          </text>
+          <text
+            className="logo-bottom-text tagline-small"
+            x="50%"
+            y="38"
+            textAnchor="middle"
+            fontFamily="Inter,Segoe UI,Arial,sans-serif"
+            fontWeight="700"
+            fontSize="18"
+            fill="none"
+            stroke="url(#tagline2-glow)"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+            opacity="0.85"
+            filter="url(#tagline2-soft)"
+          >
+            Solo contenuti basati su evidenze: articoli, ricerche, protocolli.
+          </text>
+        </svg>
       </p>
 
       {/* Search card */}
@@ -317,6 +472,20 @@ export default function Academy({ items }) {
 
       {/* STILI */}
       <style jsx>{`
+        .ae-tagline .logo-bottom-text {
+          font-size: 28px;
+          letter-spacing: 0;
+          transition: letter-spacing 0.5s ease-in-out;
+        }
+
+        .ae-tagline .logo-bottom-text.tagline-small {
+          font-size: 32px;
+        }
+
+        .ae-tagline:hover .logo-bottom-text {
+          letter-spacing: 3px;
+        }
+
         .articlesGrid {
           display: grid;
           gap: 1rem;
