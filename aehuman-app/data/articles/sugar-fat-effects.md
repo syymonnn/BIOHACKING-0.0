@@ -2,7 +2,7 @@
 id: "A004-2025-08-30-sugar-fat-effects"
 title: "Zuccheri e grassi saturi: il lento veleno della dieta moderna"
 date: "2025-08-30"
-tags: ["nutrition", "longevity", "mental-health", "performance"]
+tags: ["nutrition", "longevity", "psyche", "performance"]
 excerpt: "Troppi zuccheri e grassi saturi accorciano la vita e minano lucidità, umore ed energia. Ecco cosa dice la scienza e come cambiare abitudini quotidiane."
 hero: "/images/academy/sugar-saturated-fat.jpg"
 author: "Æ Research"

@@ -80,10 +80,10 @@ export const TOPIC_THEME = {
 
 export const TOPIC_TAGS = {
   [TopicKey.COLD]: ['cold'],
-  [TopicKey.LONGEVITY]: ['longevity', 'biohacking', 'self-tracking'],
+  [TopicKey.LONGEVITY]: ['longevity'],
   [TopicKey.PERFORMANCE]: ['performance', 'energy'],
   [TopicKey.SLEEP]: ['sleep'],
-  [TopicKey.BRAIN]: ['brain', 'mental-health'],
+  [TopicKey.BRAIN]: ['brain', 'psyche'],
   [TopicKey.RESILIENCE]: ['resilience'],
   [TopicKey.NUTRITION]: ['nutrition']
 };
@@ -169,7 +169,7 @@ function _themeFromEl(el) {
     el.getAttribute('data-topic') ||
     el.textContent ||
     '';
-  const tag = _norm(raw) === 'tutti' ? TopicKey.DEFAULT : _norm(raw);
+  const tag = _norm(raw) === 'ALL' ? TopicKey.DEFAULT : _norm(raw);
   return TOPIC_THEME[tag] || getTagTheme(tag);
 }
 

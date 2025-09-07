@@ -144,6 +144,31 @@ main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
   50%{ --ty-bounce:3px; }
 }
 
+@keyframes tagEnter{
+  0%{
+    left:50%;
+    top:50%;
+    --ty-bounce:0px;
+    opacity:0;
+    transform:translate(-50%, -50%) translateY(var(--ty-bounce)) rotate(-720deg) scale(0.2);
+  }
+  80%{
+    left:var(--x);
+    top:var(--y);
+    --ty-bounce:0px;
+    opacity:1;
+    transform:translate(-50%, -50%) translateY(var(--ty-bounce)) rotate(10deg) scale(1.1);
+  }
+  100%{
+    left:var(--x);
+    top:var(--y);
+    --ty-bounce:0px;
+    opacity:1;
+    transform:translate(-50%, -50%) translateY(var(--ty-bounce)) rotate(0deg) scale(1);
+  }
+}
+
+
 /* Neon tagline under Academy title */
 .ae-tagline{
   font-weight:500;                      /* meno grassetto */
@@ -160,29 +185,6 @@ main{ max-width: var(--container); margin: 0 auto; padding: 1.2rem; }
   text-shadow:
     0 0 6px rgba(0,255,209,.55),
     0 0 14px rgba(0,255,209,.25);
-}
-
-/* Floating tag buttons around brain */
-.tag-bubble{
-  position:absolute;
-  --tx:-50%;
-  --ty:-50%;
-  --ty-bounce:0px;
-  transform:translate(var(--tx), var(--ty)) translateY(var(--ty-bounce));
-  padding:.5rem 1rem;
-  border-radius:12px;
-  font-weight:700;
-  color:#0b0b0f;
-  cursor:pointer;
-  animation:tagBounce 3s ease-in-out infinite;
-}
-.tag-bubble:hover{
-  transform:translate(var(--tx), var(--ty)) translateY(var(--ty-bounce)) scale(1.05);
-  filter:brightness(1.1);
-}
-@keyframes tagBounce{
-  0%,100%{ --ty-bounce:-3px; }
-  50%{ --ty-bounce:3px; }
 }
 
 
