@@ -1,4 +1,4 @@
-// topics.js — identico nelle export; migliora automaticamente SOLO le .tag-bubble
+// topics.js — con stati visivi per selezionato/non selezionato
 
 export const TopicKey = {  
   SLEEP: 'sleep',
@@ -8,6 +8,7 @@ export const TopicKey = {
   BRAIN: 'brain',
   RESILIENCE: 'resilience',
   NUTRITION: 'nutrition',
+  SPORT: 'sport',
   DEFAULT: 'default'
 };
 
@@ -68,6 +69,14 @@ export const TOPIC_THEME = {
     ring: '0 0 0 3px rgba(138,201,38,.3)',
     gradient: 'linear-gradient(135deg,#4F60DE,#ffe869)'
   },
+  [TopicKey.SPORT]: {
+    accent: '#e91e63',
+    accentSoft: 'rgba(233,30,99,.15)',
+    glow: '0 0 12px rgba(233,30,99,.5)',
+    text: '#ffedf2',
+    ring: '0 0 0 3px rgba(233,30,99,.3)',
+    gradient: 'linear-gradient(135deg,#e91e63,#ff5722)'
+  },
   [TopicKey.DEFAULT]: {
     accent: '#00ffd1',
     accentSoft: 'rgba(0,255,209,.15)',
@@ -85,7 +94,8 @@ export const TOPIC_TAGS = {
   [TopicKey.SLEEP]: ['sleep'],
   [TopicKey.BRAIN]: ['brain', 'psyche'],
   [TopicKey.RESILIENCE]: ['resilience'],
-  [TopicKey.NUTRITION]: ['nutrition']
+  [TopicKey.NUTRITION]: ['nutrition'],
+  [TopicKey.SPORT]: ['sport', 'training', 'fitness']
 };
 
 // Build reverse lookup allowing tags to belong to multiple categories
@@ -143,7 +153,6 @@ export function getTopicFromTags(tags = []) {
   for (const tag of normalized) {
     const topics = TAG_TOPIC_MAP[tag];
     if (topics && topics.length) {
-      // Use the first mapped topic as the primary one
       return topics[0];
     }
   }
@@ -154,33 +163,61 @@ const topics = { TopicKey, TOPIC_THEME, TOPIC_TAGS, getTagTheme, getTopicFromTag
 export default topics;
 
 /* ============================================================
-   ENHANCER SOLO PER LE CARD .tag-bubble (cervello 3D)
-   - nessun impatto sul resto della UI
-   - idempotente e senza dipendenze esterne
+   ENHANCER CON STATI SELEZIONATO/NON SELEZIONATO
    ============================================================ */
+
+// Stili per stato NON selezionato (grigio, bordo tratteggiato)
+const UNSELECTED_STYLE = {
+  background: 'rgba(120, 120, 120, 0.15)',
+  border: '2px dashed rgba(140, 140, 140, 0.6)',
+  color: 'rgba(200, 200, 200, 0.8)',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)'
+};
 
 function _norm(s) {
   return String(s || '').normalize('NFKD').replace(/\s+/g, ' ').trim().toLowerCase();
 }
+
 function _themeFromEl(el) {
-  // priorità a data-tag/topic, fallback al testo (gestisce "Tutti")
   const raw =
     el.getAttribute('data-tag') ||
     el.getAttribute('data-topic') ||
     el.textContent ||
     '';
-  const tag = _norm(raw) === 'ALL' ? TopicKey.DEFAULT : _norm(raw);
+  const tag = _norm(raw) === 'tutti' || _norm(raw) === 'all' ? TopicKey.DEFAULT : _norm(raw);
   return TOPIC_THEME[tag] || getTagTheme(tag);
 }
 
-function _buildBubbleStyles(theme) {
-  // estetica rivista: glass overlay, doppia cornice soft, glow pulito
+function _buildBubbleStyles(theme, isSelected = false) {
+  if (!isSelected) {
+    // Stato non selezionato: grigio con bordo tratteggiato
+    return {
+      ...UNSELECTED_STYLE,
+      fontWeight: '600',
+      letterSpacing: '.1px',
+      textShadow: '0 1px 0 rgba(0,0,0,.1)',
+      padding: '10px 18px',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '8px',
+      borderRadius: '999px',
+      transition: 'all .3s cubic-bezier(.2,.7,.2,1)',
+      willChange: 'transform',
+      outline: 'none',
+      whiteSpace: 'nowrap',
+      userSelect: 'none',
+      cursor: 'pointer'
+    };
+  }
+  
+  // Stato selezionato: colori del tema
   return {
     background:
       `${theme.gradient}, linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.08))`,
     backgroundBlendMode: 'overlay, normal',
-    border: '1px solid #333',
-
+    border: '2px solid rgba(255,255,255,0.3)',
     boxShadow: `${theme.glow}, 0 12px 28px rgba(0,0,0,.35), 0 0 0 1px ${theme.accentSoft}`,
     color: theme.text,
     WebkitBackdropFilter: 'blur(14px) saturate(140%)',
@@ -188,12 +225,12 @@ function _buildBubbleStyles(theme) {
     fontWeight: '800',
     letterSpacing: '.2px',
     textShadow: '0 1px 0 rgba(0,0,0,.25)',
-    padding: '10px 18px', // un filo più generoso
+    padding: '10px 18px',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
     borderRadius: '999px',
-    transition: 'transform .22s cubic-bezier(.2,.7,.2,1), box-shadow .22s ease, background .22s ease',
+    transition: 'all .3s cubic-bezier(.2,.7,.2,1)',
     willChange: 'transform',
     outline: 'none',
     whiteSpace: 'nowrap',
@@ -202,8 +239,14 @@ function _buildBubbleStyles(theme) {
   };
 }
 
-function _ensureShine(el, theme) {
-  if (el.querySelector(':scope > .ae-shine')) return;
+function _ensureShine(el, theme, isSelected) {
+  // Rimuovi shine esistente
+  const existingShine = el.querySelector(':scope > .ae-shine');
+  if (existingShine) existingShine.remove();
+  
+  // Aggiungi shine solo se selezionato
+  if (!isSelected) return;
+  
   const shine = document.createElement('span');
   shine.className = 'ae-shine';
   Object.assign(shine.style, {
@@ -218,9 +261,15 @@ function _ensureShine(el, theme) {
   });
   el.appendChild(shine);
 }
-function _ensureBadge(el, theme) {
-  // invece di icona, aggiunge solo un overlay invisibile che intensifica i colori
-  if (el.querySelector(':scope > .ae-badge-boost')) return;
+
+function _ensureBadge(el, theme, isSelected) {
+  // Rimuovi badge esistente
+  const existingBadge = el.querySelector(':scope > .ae-badge-boost');
+  if (existingBadge) existingBadge.remove();
+  
+  // Aggiungi badge solo se selezionato
+  if (!isSelected) return;
+  
   const boost = document.createElement('span');
   boost.className = 'ae-badge-boost';
   Object.assign(boost.style, {
@@ -235,7 +284,7 @@ function _ensureBadge(el, theme) {
   el.appendChild(boost);
 }
 
-function _wireInteractions(el, theme, baseBoxShadow) {
+function _wireInteractions(el, theme, baseBoxShadow, isSelected) {
   if (el.__aeWired) return;
   el.__aeWired = true;
 
@@ -248,21 +297,42 @@ function _wireInteractions(el, theme, baseBoxShadow) {
   el.addEventListener('mouseleave', () => {
     el.style.transform = 'translate(-50%, -50%) scale(1)';
   });
-  el.addEventListener('focus', () => {
-    el.style.boxShadow = `${theme.glow}, ${theme.ring}`;
-  });
-  el.addEventListener('blur', () => {
-    el.style.boxShadow = baseBoxShadow;
-  });
+  
+  if (isSelected) {
+    el.addEventListener('focus', () => {
+      el.style.boxShadow = `${theme.glow}, ${theme.ring}`;
+    });
+    el.addEventListener('blur', () => {
+      el.style.boxShadow = baseBoxShadow;
+    });
+  } else {
+    el.addEventListener('focus', () => {
+      el.style.boxShadow = '0 0 0 3px rgba(140, 140, 140, 0.4)';
+    });
+    el.addEventListener('blur', () => {
+      el.style.boxShadow = baseBoxShadow;
+    });
+  }
+  
   // hover solo se niente touch
   el.addEventListener('pointerenter', (e) => {
     if (e.pointerType === 'mouse') {
-      el.style.transform = 'translate(-50%, -50%) scale(1.02)';
+      el.style.transform = 'translate(-50%, -50%) scale(1.05)';
+      if (!isSelected) {
+        // Leggero accenno di colore al hover per i non selezionati
+        el.style.borderColor = 'rgba(180, 180, 180, 0.8)';
+        el.style.color = 'rgba(220, 220, 220, 0.9)';
+      }
     }
   });
   el.addEventListener('pointerleave', (e) => {
     if (e.pointerType === 'mouse') {
       el.style.transform = 'translate(-50%, -50%) scale(1)';
+      if (!isSelected) {
+        // Torna al colore originale
+        el.style.borderColor = 'rgba(140, 140, 140, 0.6)';
+        el.style.color = 'rgba(200, 200, 200, 0.8)';
+      }
     }
   });
 }
@@ -272,9 +342,10 @@ function _upgradeOneTagBubble(el) {
   el.__aeUpgraded = true;
 
   const theme = _themeFromEl(el);
-  const styles = _buildBubbleStyles(theme);
+  const isSelected = el.getAttribute('data-selected') === 'true' || el.getAttribute('aria-pressed') === 'true';
+  const styles = _buildBubbleStyles(theme, isSelected);
 
-  // Manteniamo left/top/transform di posizionamento già impostati dal tuo render.
+  // Mantieni posizionamento
   const keep = {
     position: el.style.position || 'absolute',
     left: el.style.left,
@@ -282,14 +353,14 @@ function _upgradeOneTagBubble(el) {
     transform: el.style.transform || 'translate(-50%, -50%)'
   };
 
-  // Applica nuovi stili
+  // Applica stili
   Object.assign(el.style, styles, keep);
 
-  // Layer extra (non influiscono sul layout)
-  _ensureShine(el, theme);
-  _ensureBadge(el, theme);
+  // Layer extra solo se selezionato
+  _ensureShine(el, theme, isSelected);
+  _ensureBadge(el, theme, isSelected);
 
-  _wireInteractions(el, theme, styles.boxShadow);
+  _wireInteractions(el, theme, styles.boxShadow, isSelected);
 }
 
 function _upgradeAllTagBubbles() {
@@ -297,15 +368,44 @@ function _upgradeAllTagBubbles() {
   els.forEach(_upgradeOneTagBubble);
 }
 
-// auto-run: appena il DOM è pronto (Next monta i bottoni subito dopo il paint)
+// Observer per modifiche allo stato data-selected
+function _observeSelectionChanges() {
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'attributes' && 
+          (mutation.attributeName === 'data-selected' || mutation.attributeName === 'aria-pressed')) {
+        const el = mutation.target;
+        if (el.classList.contains('tag-bubble')) {
+          // Reset flag per forzare re-upgrade
+          el.__aeUpgraded = false;
+          _upgradeOneTagBubble(el);
+        }
+      }
+    });
+  });
+
+  observer.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['data-selected', 'aria-pressed'],
+    subtree: true
+  });
+}
+
+// Auto-run: appena il DOM è pronto
 if (typeof document !== 'undefined') {
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', _upgradeAllTagBubbles);
+    document.addEventListener('DOMContentLoaded', () => {
+      _upgradeAllTagBubbles();
+      _observeSelectionChanges();
+    });
   } else {
-    // piccolo rAF per lasciare a React/Next il tempo di impostare gli inline style base
-    requestAnimationFrame(_upgradeAllTagBubbles);
+    requestAnimationFrame(() => {
+      _upgradeAllTagBubbles();
+      _observeSelectionChanges();
+    });
   }
-  // osserva aggiunte dinamiche (navigazioni client-side)
+  
+  // Observer per nuovi elementi
   const mo = new MutationObserver((muts) => {
     for (const m of muts) {
       m.addedNodes && m.addedNodes.forEach((n) => {

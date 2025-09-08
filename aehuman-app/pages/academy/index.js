@@ -11,7 +11,7 @@ const { TOPIC_THEME, TOPIC_TAGS, TopicKey, getTagTheme, getTopicFromTags } = top
 
 export default function Academy({ items }) {
   const [q, setQ] = useState('');
-  const [tag, setTag] = useState('all');
+  const [selectedTags, setSelectedTags] = useState(new Set());
   const wrapRef = useRef(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
   
@@ -20,6 +20,12 @@ export default function Academy({ items }) {
   
   // ⬇️ Linea neon dinamica
   const MAX_LINE = 600;
+  // moltiplicatore per amplificare il movimento della linea
+  const LINE_GAIN = 1.5;
+  // offset di scroll (0..1): valori negativi anticipano l'animazione, positivi la ritardano
+  const LINE_START_OFFSET = 0.1;
+  // percentuale della larghezza del box usata per i connettori orizzontali
+  const CONNECTOR_WIDTH = 15; // ex 5%
   const [lineHeight, setLineHeight] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const rafRef = useRef(null);
@@ -31,7 +37,6 @@ export default function Academy({ items }) {
     []
   );
 
-  const tagsWithAll = useMemo(() => ['all', ...allTags], [allTags]);
   const [tagSizes, setTagSizes] = useState([]);
 
   // Step narrativi minimal e ispirational
@@ -41,26 +46,31 @@ export default function Academy({ items }) {
       threshold: 0.15,
       side: 'left',
       text: 'Biohacking è applicare metodo scientifico alla quotidianità',
+      offset: 0,
     },
     {
       id: 2,
       threshold: 0.35,
       side: 'right', 
       text: 'Ogni dato diventa un’abitudine, ogni abitudine diventa longevità',
+      offset: 0,
     },
     {
       id: 3,
       threshold: 0.55,
       side: 'left',
       text: 'Dati e ricerca si trasformano in energia, chiarezza, benessere.',
+      offset: 0,
     },
     {
       id: 4,
       threshold: 0.75,
       side: 'right',
       text: 'Seleziona l’argomento che ti interessa, esplora, integra: l’Academy è il tuo strumento',
+      offset: -0.15, // anticipa leggermente la comparsa
     }
   ], []);
+  
 
   useEffect(() => {
     // aspetta un paint: i bottoni devono esistere nel DOM
@@ -74,7 +84,7 @@ export default function Academy({ items }) {
       });
       setTagSizes(sizes);
     });
-  }, [tagsWithAll.length]);
+  }, [allTags.length]);
 
   useEffect(() => {
     function update() {
@@ -123,7 +133,7 @@ export default function Academy({ items }) {
       const gapY = Math.max(120, Math.floor(h * 0.42)); // aumenta se tocca il cervello
 
       // larghezze reali in ordine (fallback 90)
-      const widths = tagsWithAll.map((_, i) => tagSizes[i]?.w ?? 90);
+      const widths = allTags.map((_, i) => tagSizes[i]?.w ?? 90);
 
       // Pack su più righe entro MAX_W
       const MAX_W = Math.max(160, w - 2 * MARGIN_SIDE);
@@ -166,7 +176,7 @@ export default function Academy({ items }) {
       };
 
       // Costruisci posizioni (righe dalla più vicina al cervello verso l'esterno)
-      const posByIndex = new Array(tagsWithAll.length);
+      const posByIndex = new Array(allTags.length);
 
       topRows.forEach((rowItems, idx) => {
         const y = cy - gapY - idx * (tagH + GAP_Y);
@@ -187,7 +197,8 @@ export default function Academy({ items }) {
 
     // ✅ DESKTOP: scegli il layout
     const mode = 'circle'; // 'circle' (consigliato) oppure 'fibo'
-    const N = tagsWithAll.length;
+    const N = allTags.length;
+
 
     // raggio dell'anello attorno al cervello
     const R = Math.min(w, h) * 0.65; // regola a gusto
@@ -217,7 +228,8 @@ export default function Academy({ items }) {
         top: cy + R * y,
       };
     });
-  }, [size, tagsWithAll, tagSizes]);
+  }, [size, allTags, tagSizes]);
+
 
   const ready = useMemo(
     () => Array.isArray(positions) && positions.length > 0,
@@ -324,29 +336,29 @@ export default function Academy({ items }) {
       
       setScrollProgress(scrollPercent);
 
-      // Calcola l'altezza desiderata della linea - più sensibile al movimento
-      const desiredHeight = scrollPercent * MAX_LINE;
+      // Applica gain e offset per la linea
+      const lineProgress = Math.max(0, scrollPercent - LINE_START_OFFSET) * LINE_GAIN;
+
+      // Calcola l'altezza desiderata della linea
+      const desiredHeight = lineProgress * MAX_LINE;
       
       // altezza massima permessa in questo frame
       const allowedMax = Math.min(MAX_LINE, visibleRoom);
 
-      // Smoothing per transizioni più fluide
-      const smoothedHeight = lerp(lineHeight, Math.max(0, Math.min(allowedMax, desiredHeight)), 0.08);
-      
-      setLineHeight(smoothedHeight);
+      // Aggiorna direttamente l'altezza per seguire lo scroll indipendentemente dalla velocità
+      setLineHeight(Math.max(0, Math.min(allowedMax, desiredHeight)));
 
       rafRef.current = requestAnimationFrame(apply);
-    };
+      };
 
     rafRef.current = requestAnimationFrame(apply);
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [lineHeight]);
+  }, []);
 
-  // Funzioni di easing e interpolazione
+  // Funzione di easing
   const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-  const lerp = (start, end, factor) => start + (end - start) * factor;
 
   // ⬇️ Gestione scroll events più responsive
   useEffect(() => {
@@ -382,10 +394,10 @@ export default function Academy({ items }) {
         qn === '' ||
         item.title.toLowerCase().includes(qn) ||
         item.excerpt.toLowerCase().includes(qn);
-      const matchTag = tag === 'all' || item.tags.includes(tag);
+      const matchTag = selectedTags.size === 0 || item.tags.some(t => selectedTags.has(t));
       return matchQ && matchTag;
     });
-  }, [q, tag, items]);
+  }, [q, selectedTags, items]);
 
   // Fallback tema per sicurezza (nel caso 'all' o tag strani)
   const FALLBACK_THEME = TOPIC_THEME[TopicKey.DEFAULT] ?? {
@@ -573,45 +585,71 @@ export default function Academy({ items }) {
           }}
         />
 
-        {tagsWithAll.map((t, i) => {
-          const pos = positions[i] || { left: 0, top: 0 };
-          const delay = i * 0.1;
-          const theme = t === 'all'
-            ? TOPIC_THEME[TopicKey.DEFAULT]
-            : topics.getTagTheme(t);
+        {allTags.map((t, i) => {
+        const pos = positions[i] || { left: 0, top: 0 };
+        const delay = i * 0.1;
+        const isSelected = selectedTags.has(t);
+        const theme = topics.getTagTheme(t) || FALLBACK_THEME;
 
-          return (
-            <button
-              key={t}
-              onClick={() => setTag(t)}
-              className="tag-bubble"
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: '50%',
-                '--x': `${pos.left}px`,
-                '--y': `${pos.top}px`,
-                transform: 'translate(-50%, -50%)',
-                borderRadius: '999px',
-                border: '1px solid transparent',
-                background: theme.gradient,
-                boxShadow: theme.glow,
-                color: theme.text,
-                cursor: 'pointer',
-                animation: ready
-                  ? `tagEnter 0.8s cubic-bezier(.22,1,.36,1) ${delay}s forwards`
-                  : 'none',
-                opacity: ready ? 1 : 0,
-                whiteSpace: 'nowrap',
-                userSelect: 'none',
-                zIndex: 1,
-              }}
-              aria-pressed={tag === t}
-            >
-              {t === 'all' ? 'Tutti' : t}
-            </button>
-          );
-        })}
+        const toggleTag = () => {
+          setSelectedTags(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(t)) {
+              newSet.delete(t);
+            } else {
+              newSet.add(t);
+            }
+            return newSet;
+          });
+        };
+
+        return (
+          <button
+            key={t}
+            onClick={toggleTag}
+            className="tag-bubble"
+            data-selected={isSelected}
+            data-tag={t}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              '--x': `${pos.left}px`,
+              '--y': `${pos.top}px`,
+              transform: 'translate(-50%, -50%)',
+              borderRadius: '999px',
+              padding: '0.6rem 1.2rem',
+              fontSize: '0.9rem',
+              fontWeight: '500',
+              // CORREZIONE: logica invertita - di default grigio, colorato solo se selezionato
+              border: isSelected 
+                ? `2px solid ${theme.accent}` 
+                : '2px dashed rgba(150,150,150,0.4)',
+              background: isSelected 
+                ? theme.gradient 
+                : 'rgba(255,255,255,0.03)',
+              color: isSelected 
+                ? theme.text 
+                : 'rgba(180,180,180,0.8)',
+              boxShadow: isSelected 
+                ? theme.glow 
+                : '0 1px 3px rgba(0,0,0,0.2)',
+              cursor: 'pointer',
+              animation: ready
+                ? `tagEnter 0.8s cubic-bezier(.22,1,.36,1) ${delay}s forwards`
+                : 'none',
+              opacity: ready ? 1 : 0,
+              whiteSpace: 'nowrap',
+              userSelect: 'none',
+              zIndex: 1,
+              transition: 'all 0.3s ease',
+            }}
+            aria-pressed={isSelected}
+          >
+            {t}
+          </button>
+        );
+      })}
       </div>
 
       {/* Contenitore NARRATIVO: Linea centrale + Step + Search card */}
@@ -648,10 +686,13 @@ export default function Academy({ items }) {
 
         {/* Step narrativi minimal */}
         {narrativeSteps.map((step) => {
-          const shouldShow = scrollProgress >= step.threshold;
-          const stepProgress = Math.min(1, Math.max(0, (scrollProgress - step.threshold) / 0.05));
+          const trigger = step.threshold + (step.offset || 0);
+          const shouldShow = scrollProgress >= trigger;
+          const stepProgress = Math.min(1, Math.max(0, (scrollProgress - trigger) / 0.2));
           const stepY = step.threshold * MAX_LINE + 60;
           
+          const lineRatio = Math.min(1, lineHeight / stepY);
+          const connectorProgress = Math.min(stepProgress, lineRatio);
           return (
             <div
               key={step.id}
@@ -674,12 +715,11 @@ export default function Academy({ items }) {
                 style={{
                   position: 'absolute',
                   top: '50%',
-                  [step.side === 'left' ? 'right' : 'left']: '-5%',
-                  width: '5%',
+                  [step.side === 'left' ? 'right' : 'left']: `-${CONNECTOR_WIDTH * connectorProgress}%`,
+                  width: `${CONNECTOR_WIDTH * connectorProgress}%`,
                   height: '1px',
-                  background: 'linear-gradient(90deg, transparent, #00d9ff)',
                   transform: 'translateY(-50%)',
-                  opacity: stepProgress,
+                  opacity: connectorProgress,
                   boxShadow: '0 0 4px rgba(0, 217, 255, 0.6)',
                 }}
               />
