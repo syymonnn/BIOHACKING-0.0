@@ -6,6 +6,7 @@ import { marked } from "marked";
 import Layout from "../../components/Layout";
 import Link from 'next/link';
 import { useEffect, useState } from "react";
+import { useRouter } from 'next/router';
 import Head from "next/head";
 
 // --- CONFIGURAZIONE TEMA "DEEP SPACE ACADEMY" ---
@@ -59,6 +60,8 @@ renderer.image = (href, title, text) => {
 marked.setOptions({ renderer, gfm: true });
 
 export default function Article({ title, html, tags, date, readingTime, hero }) {
+    const router = useRouter();
+    const { from } = router.query;
     const [progress, setProgress] = useState(0);
     const [mounted, setMounted] = useState(false);
 
@@ -102,9 +105,14 @@ export default function Article({ title, html, tags, date, readingTime, hero }) 
                 
                 {/* NAVIGAZIONE DI RITORNO */}
                 <nav className="top-nav">
-                    <Link href="/academy" className="back-link group">
+                    <Link 
+                        href={from === 'track' ? '/track/app' : '/academy'} 
+                        className="back-link group"
+                    >
                         <span className="arrow">←</span> 
-                        <span className="link-text">ARCHIVE INDEX</span>
+                        <span className="link-text">
+                            {from === 'track' ? 'BACK TO TRACK' : 'ARCHIVE INDEX'}
+                        </span>
                     </Link>
                     <div className="doc-id">DOC_REF: {date ? new Date(date).getTime().toString().slice(-6) : '000000'}</div>
                 </nav>

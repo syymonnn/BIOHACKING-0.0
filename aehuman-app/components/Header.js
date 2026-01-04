@@ -10,6 +10,7 @@ export default function Header() {
       <nav className={styles.navLinks}>
         <Link href="/products">PRODUCTS</Link>
         <Link href="/academy">ACADEMY</Link>
+        <Link href="/track">TRACK</Link>
       </nav>
     </header>
   );
