@@ -197,6 +197,7 @@ export default function ArticleCard({ article }) {
         .mini-tags {
           display: flex;
           gap: 8px;
+          flex-wrap: wrap;
         }
         
         .mini-tag {
@@ -228,6 +229,48 @@ export default function ArticleCard({ article }) {
           color: #000;
           border-color: var(--accent);
           box-shadow: 0 0 20px var(--accent);
+        }
+
+        @media (max-width: 768px) {
+          .holo-card {
+            height: auto;
+            min-height: 380px;
+          }
+          
+          .holo-card-content {
+            padding: 1.5rem;
+          }
+          
+          .card-title {
+            font-size: 1.2rem;
+          }
+          
+          .card-excerpt {
+            font-size: 0.9rem;
+            -webkit-line-clamp: 2;
+          }
+          
+          .card-footer {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+          }
+          
+          .mini-tags {
+            width: 100%;
+          }
+          
+          .mini-tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+          }
+          
+          .holo-action-btn {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            width: 100%;
+            justify-content: center;
+          }
         }
       `}</style>
     </div>

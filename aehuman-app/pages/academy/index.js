@@ -214,21 +214,24 @@ export default function Academy({ items }) {
             </div>
 
             {/* TAGS FLUTTUANTI (Glassmorphism Pills) */}
+            <div className={`tags-container ${size.w < 768 ? 'mobile-layout' : ''}`}>
             {allTags.map((t, i) => {
                 const pos = positions[i] || { left: 0, top: 0 };
                 const isSelected = selectedTags.has(t);
+                const isMobile = size.w < 768;
                 
                 return (
                     <button
                         key={t}
                         onClick={() => toggleTag(t)}
                         className={`tag-glass-btn ${isSelected ? 'active' : ''}`}
-                        style={{
+                        style={!isMobile ? {
                             left: pos.left,
                             top: pos.top,
                             opacity: ready ? 1 : 0,
-                            // Ritardo progressivo per un'entrata elegante
                             transitionDelay: `${i * 0.03}s` 
+                        } : {
+                            opacity: 1
                         }}
                     >
                         <span className="data-point"></span>
@@ -236,6 +239,7 @@ export default function Academy({ items }) {
                     </button>
                 );
             })}
+            </div>
           </div>
       </div>
 
@@ -327,7 +331,7 @@ export default function Academy({ items }) {
 
         /* HEADER TIPOGRAFIA */
         .academy-header {
-            position: relative; z-index: 10; textAlign: center; paddingTop: 4rem;
+            position: relative; z-index: 10; textAlign: center; paddingTop: 8rem;
             margin-bottom: 2rem;
         }
         .neon-title {
@@ -438,6 +442,23 @@ export default function Academy({ items }) {
 
 
         /* --- TAGS (Glass Pills) --- */
+        .tags-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .tags-container.mobile-layout {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+            padding: 0 1rem 0.5rem;
+            margin-top: 0;
+            justify-items: center;
+        }
+        
         .tag-glass-btn {
             position: absolute;
             transform: translate(-50%, -50%);
@@ -562,7 +583,7 @@ export default function Academy({ items }) {
         .card-excerpt {
             color: rgba(220, 230, 255, 0.7); font-size: 0.95rem; line-height: 1.6;
             flex-grow: 1; margin-bottom: 1.5rem;
-            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
 
         /* Data Stream Viz (Decorazione) */
@@ -583,7 +604,7 @@ export default function Academy({ items }) {
 
 
         .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
-        .mini-tags { display: flex; gap: 8px; }
+        .mini-tags { display: flex; gap: 8px; flex-wrap: wrap; }
         .mini-tag {
             font-size: 0.75rem; color: rgba(255,255,255,0.6);
             background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 12px;
@@ -604,14 +625,126 @@ export default function Academy({ items }) {
 
 
         @media (max-width: 768px) {
-            .hud-container { height: 650px; }
-            /* Su mobile il cervello sta sopra, i tag sotto */
-            .model-wrapper { 
-                top: 30%; 
-                width: 280px; 
-                height: 280px; 
+            /* Sfondo specifico per mobile */
+            .academy-bg-layer {
+                background-image: url('/sfondo_academy_mobile2.jpg');
+                background-position: center top;
             }
-            .articles-grid { grid-template-columns: 1fr; }
+
+            /* Nascondi griglia su mobile */
+            .academy-grid-layer {
+                display: none;
+            }
+
+            /* Header mobile */
+            .academy-header {
+                padding-top: 3rem;
+                margin-bottom: 1.5rem;
+            }
+            .neon-title {
+                font-size: clamp(1.8rem, 8vw, 2.5rem);
+            }
+            .neon-subtitle {
+                font-size: 0.85rem;
+            }
+
+            /* HUD mobile - layout verticale */
+            .hud-wrapper-outer {
+                margin: 1rem 0 1rem;
+            }
+            .hud-container { 
+                height: auto;
+                min-height: auto;
+                padding-bottom: 0.5rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            /* Cervello più piccolo e centrato */
+            .model-wrapper { 
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                transform: none !important;
+                width: 180px; 
+                height: 180px;
+                margin: 0 auto 1rem;
+            }
+
+            /* Nascondi elementi grafici complessi su mobile */
+            .hud-connections,
+            .central-core-glow {
+                display: none;
+            }
+
+            /* Tag mobile - griglia 2 colonne */
+            .tag-glass-btn {
+                position: relative !important;
+                transform: none !important;
+                left: auto !important;
+                top: auto !important;
+                margin: 0 !important;
+                width: 100%;
+                max-width: 100%;
+                padding: 8px 12px;
+                font-size: 0.8rem;
+                justify-content: center;
+            }
+            .tag-glass-btn .data-point {
+                width: 6px;
+                height: 6px;
+            }
+
+            /* Articles section mobile */
+            .articles-section {
+                padding: 1rem;
+                margin: 2rem 0;
+            }
+            .section-title {
+                font-size: 1rem;
+            }
+            .articles-grid { 
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            /* Card mobile */
+            .holo-card {
+                height: auto;
+                min-height: 380px;
+            }
+            .holo-card-content {
+                padding: 1.5rem;
+            }
+            .card-title {
+                font-size: 1.2rem;
+            }
+            .card-excerpt {
+                font-size: 0.9rem;
+            }
+            .card-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .mini-tags {
+                width: 100%;
+            }
+            .mini-tags {
+                flex-wrap: wrap;
+                width: 100%;
+            }
+            .mini-tag {
+                font-size: 0.7rem;
+                padding: 3px 8px;
+            }
+            .holo-action-btn {
+                font-size: 0.85rem;
+                padding: 6px 12px;
+                width: 100%;
+                justify-content: center;
+            }
         }
       `}</style>
     </Layout>
