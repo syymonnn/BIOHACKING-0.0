@@ -6,18 +6,20 @@ import { isAuthenticatedSync, getUser } from '../../lib/auth';
 import { supabase } from '../../lib/supabaseClient';
 import { motion } from 'framer-motion';
 
-// Avatar disponibili (10 varianti moderne e professionali)
+// Avatar disponibili (12 varianti moderne e professionali)
 const AVATARS = [
-  { id: 1, emoji: '🚀', name: 'Rocket', gradient: 'linear-gradient(135deg, #00FFD1, #00D9FF)' },
-  { id: 2, emoji: '⚡', name: 'Lightning', gradient: 'linear-gradient(135deg, #FFE869, #FFC857)' },
-  { id: 3, emoji: '🧬', name: 'DNA', gradient: 'linear-gradient(135deg, #A3FF12, #00FFB3)' },
-  { id: 4, emoji: '🎯', name: 'Target', gradient: 'linear-gradient(135deg, #FF6B35, #FF3B9A)' },
-  { id: 5, emoji: '💎', name: 'Diamond', gradient: 'linear-gradient(135deg, #00D9FF, #BD00FF)' },
-  { id: 6, emoji: '🌟', name: 'Star', gradient: 'linear-gradient(135deg, #FFC857, #FFE869)' },
-  { id: 7, emoji: '🔮', name: 'Crystal', gradient: 'linear-gradient(135deg, #BD00FF, #FF3B9A)' },
-  { id: 8, emoji: '🦾', name: 'Bionic', gradient: 'linear-gradient(135deg, #00FFB3, #00FFD1)' },
-  { id: 9, emoji: '🧪', name: 'Lab', gradient: 'linear-gradient(135deg, #FF3B9A, #BD00FF)' },
-  { id: 10, emoji: '🎨', name: 'Art', gradient: 'linear-gradient(135deg, #00E5FF, #A3FF12)' },
+  { id: 1, emoji: '🚀', name: 'Rocket', desc: 'Fast & Ambitious', gradient: 'linear-gradient(135deg, #00FFD1 0%, #00D9FF 100%)', shadow: 'rgba(0, 255, 209, 0.3)' },
+  { id: 2, emoji: '⚡', name: 'Lightning', desc: 'Energy & Power', gradient: 'linear-gradient(135deg, #FFE869 0%, #FFC857 100%)', shadow: 'rgba(255, 232, 105, 0.3)' },
+  { id: 3, emoji: '🧬', name: 'DNA', desc: 'Science & Life', gradient: 'linear-gradient(135deg, #A3FF12 0%, #00FFB3 100%)', shadow: 'rgba(163, 255, 18, 0.3)' },
+  { id: 4, emoji: '🎯', name: 'Target', desc: 'Focus & Goals', gradient: 'linear-gradient(135deg, #FF6B35 0%, #FF3B9A 100%)', shadow: 'rgba(255, 107, 53, 0.3)' },
+  { id: 5, emoji: '💎', name: 'Diamond', desc: 'Precious & Rare', gradient: 'linear-gradient(135deg, #00D9FF 0%, #BD00FF 100%)', shadow: 'rgba(0, 217, 255, 0.3)' },
+  { id: 6, emoji: '🌟', name: 'Star', desc: 'Bright & Shine', gradient: 'linear-gradient(135deg, #FFC857 0%, #FFE869 100%)', shadow: 'rgba(255, 200, 87, 0.3)' },
+  { id: 7, emoji: '🔮', name: 'Crystal', desc: 'Mystic & Vision', gradient: 'linear-gradient(135deg, #BD00FF 0%, #FF3B9A 100%)', shadow: 'rgba(189, 0, 255, 0.3)' },
+  { id: 8, emoji: '🦾', name: 'Bionic', desc: 'Strong & Tech', gradient: 'linear-gradient(135deg, #00FFB3 0%, #00FFD1 100%)', shadow: 'rgba(0, 255, 179, 0.3)' },
+  { id: 9, emoji: '🧪', name: 'Lab', desc: 'Science & Test', gradient: 'linear-gradient(135deg, #FF3B9A 0%, #BD00FF 100%)', shadow: 'rgba(255, 59, 154, 0.3)' },
+  { id: 10, emoji: '🎨', name: 'Art', desc: 'Creative & Free', gradient: 'linear-gradient(135deg, #00E5FF 0%, #A3FF12 100%)', shadow: 'rgba(0, 229, 255, 0.3)' },
+  { id: 11, emoji: '🌊', name: 'Wave', desc: 'Flow & Calm', gradient: 'linear-gradient(135deg, #00D9FF 0%, #00FFD1 100%)', shadow: 'rgba(0, 217, 255, 0.3)' },
+  { id: 12, emoji: '🔥', name: 'Fire', desc: 'Passion & Drive', gradient: 'linear-gradient(135deg, #FF6B35 0%, #FFE869 100%)', shadow: 'rgba(255, 107, 53, 0.3)' },
 ];
 
 export default function TrackSettings() {
@@ -167,7 +169,8 @@ export default function TrackSettings() {
           <form onSubmit={handleSubmit} className="settings-form">
             {/* Avatar Selection */}
             <div className="form-section">
-              <label className="section-label">Scegli il tuo Avatar</label>
+              <label className="section-label">Choose Your Avatar</label>
+              <p className="section-desc">Select an avatar that represents your personality</p>
               <div className="avatar-grid">
                 {AVATARS.map(avatar => (
                   <motion.button
@@ -175,12 +178,32 @@ export default function TrackSettings() {
                     type="button"
                     className={`avatar-option ${formData.avatar_url === avatar.emoji ? 'active' : ''}`}
                     onClick={() => handleAvatarSelect(avatar)}
-                    whileHover={{ scale: 1.05, y: -4 }}
-                    whileTap={{ scale: 0.98 }}
-                    style={{ '--avatar-gradient': avatar.gradient }}
+                    whileHover={{ y: -6, scale: 1.02 }}
+                    whileTap={{ scale: 0.96 }}
+                    style={{ 
+                      '--avatar-gradient': avatar.gradient,
+                      '--avatar-shadow': avatar.shadow
+                    }}
                   >
-                    <span className="avatar-emoji">{avatar.emoji}</span>
-                    <span className="avatar-name">{avatar.name}</span>
+                    <div className="avatar-icon">
+                      <span className="avatar-emoji">{avatar.emoji}</span>
+                    </div>
+                    <div className="avatar-info">
+                      <span className="avatar-name">{avatar.name}</span>
+                      <span className="avatar-desc">{avatar.desc}</span>
+                    </div>
+                    {formData.avatar_url === avatar.emoji && (
+                      <motion.div 
+                        className="avatar-check"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </motion.div>
+                    )}
                   </motion.button>
                 ))}
               </div>
@@ -288,10 +311,11 @@ export default function TrackSettings() {
 
       <style jsx>{`
         .settings-container {
-          min-height: calc(100vh - var(--navbar-height));
+          min-height: 100vh;
           padding: 2rem 1.5rem;
           max-width: 800px;
           margin: 0 auto;
+          position: relative;
         }
 
         .settings-card {
@@ -300,6 +324,7 @@ export default function TrackSettings() {
           border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: var(--radius-2);
           padding: 2.5rem;
+          will-change: transform;
         }
 
         .settings-header {
@@ -350,92 +375,119 @@ export default function TrackSettings() {
         }
 
         .section-label {
-          font-size: 1.1rem;
+          font-size: 1.25rem;
           font-weight: 600;
           color: var(--txt);
-          margin-bottom: 0.5rem;
+          margin: 0;
+        }
+
+        .section-desc {
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 0.875rem;
+          margin: 0.5rem 0 0 0;
         }
 
         .avatar-grid {
           display: grid;
-          grid-template-columns: repeat(5, 1fr);
-          gap: 1.25rem;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1rem;
           margin-top: 1.5rem;
         }
 
         .avatar-option {
           position: relative;
-          background: rgba(0, 0, 0, 0.3);
-          border: 2px solid rgba(255, 255, 255, 0.15);
-          border-radius: 16px;
-          padding: 1.5rem 1rem;
-          cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           display: flex;
           flex-direction: column;
-          align-items: center;
-          gap: 0.75rem;
+          align-items: stretch;
+          gap: 0;
+          padding: 0;
+          background: rgba(0, 0, 0, 0.3);
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           overflow: hidden;
-          aspect-ratio: 1;
         }
 
-        .avatar-option::before {
+        .avatar-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem 1.5rem 1.25rem;
+          background: var(--avatar-gradient);
+          position: relative;
+        }
+
+        .avatar-icon::after {
           content: '';
           position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: var(--avatar-gradient);
-          opacity: 0;
-          transition: opacity 0.4s ease;
-          z-index: -1;
-        }
-
-        .avatar-option:hover::before {
-          opacity: 0.12;
-        }
-
-        .avatar-option:hover {
-          border-color: rgba(255, 255, 255, 0.4);
-          background: rgba(0, 0, 0, 0.5);
-          transform: translateY(-4px);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        }
-
-        .avatar-option.active {
-          background: rgba(0, 0, 0, 0.5);
-          border: 2px solid transparent;
-          box-shadow: 0 0 0 2px var(--neon-1), 0 8px 32px rgba(0, 255, 209, 0.4);
-        }
-
-        .avatar-option.active::before {
-          opacity: 0.2;
+          inset: 0;
+          background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
         }
 
         .avatar-emoji {
-          font-size: 3rem;
+          font-size: 3.5rem;
           line-height: 1;
-          filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+          filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+          position: relative;
+          z-index: 1;
+        }
+
+        .avatar-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+          padding: 1rem;
+          background: rgba(0, 0, 0, 0.5);
         }
 
         .avatar-name {
-          font-size: 0.75rem;
-          font-weight: 500;
-          color: rgba(255, 255, 255, 0.7);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+          font-size: 0.9375rem;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.95);
           text-align: center;
-          line-height: 1.2;
         }
 
-        .avatar-option:hover .avatar-name {
-          color: rgba(255, 255, 255, 0.95);
+        .avatar-desc {
+          font-size: 0.75rem;
+          color: rgba(255, 255, 255, 0.5);
+          text-align: center;
+          line-height: 1.3;
+        }
+
+        .avatar-option:hover {
+          border-color: rgba(255, 255, 255, 0.3);
+          transform: translateY(-6px);
+          box-shadow: 0 12px 32px var(--avatar-shadow);
+        }
+
+        .avatar-option:hover .avatar-emoji {
+          transform: scale(1.1);
+        }
+
+        .avatar-option.active {
+          border: 2px solid var(--neon-1);
+          box-shadow: 0 0 0 1px var(--neon-1), 0 8px 32px var(--avatar-shadow);
         }
 
         .avatar-option.active .avatar-name {
           color: var(--neon-1);
-          font-weight: 600;
+        }
+
+        .avatar-check {
+          position: absolute;
+          top: 0.75rem;
+          right: 0.75rem;
+          width: 32px;
+          height: 32px;
+          background: var(--neon-1);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #000;
+          box-shadow: 0 4px 12px rgba(0, 255, 209, 0.4);
+          z-index: 10;
         }
 
         .form-row {
@@ -540,12 +592,12 @@ export default function TrackSettings() {
           }
 
           .avatar-grid {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
           }
 
           .avatar-emoji {
-            font-size: 2.5rem;
+            font-size: 3rem;
           }
 
           .form-row {
@@ -553,13 +605,9 @@ export default function TrackSettings() {
           }
         }
 
-        @media (max-width: 480px) {
+        @media (min-width: 769px) and (max-width: 1024px) {
           .avatar-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .avatar-emoji {
-            font-size: 2rem;
+            grid-template-columns: repeat(3, 1fr);
           }
         }
       `}</style>
