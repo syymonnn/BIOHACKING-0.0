@@ -8,16 +8,16 @@ import { motion } from 'framer-motion';
 
 // Avatar disponibili (10 varianti moderne e professionali)
 const AVATARS = [
-  { id: 1, emoji: '🚀', name: 'Rocket', color: '#00FFD1' },
-  { id: 2, emoji: '⚡', name: 'Lightning', color: '#FFE869' },
-  { id: 3, emoji: '🧬', name: 'DNA', color: '#A3FF12' },
-  { id: 4, emoji: '🎯', name: 'Target', color: '#FF6B35' },
-  { id: 5, emoji: '💎', name: 'Diamond', color: '#00D9FF' },
-  { id: 6, emoji: '🌟', name: 'Star', color: '#FFC857' },
-  { id: 7, emoji: '🔮', name: 'Crystal', color: '#BD00FF' },
-  { id: 8, emoji: '🦾', name: 'Bionic', color: '#00FFB3' },
-  { id: 9, emoji: '🧪', name: 'Lab', color: '#FF3B9A' },
-  { id: 10, emoji: '🎨', name: 'Art', color: '#00E5FF' },
+  { id: 1, emoji: '🚀', name: 'Rocket', gradient: 'linear-gradient(135deg, #00FFD1, #00D9FF)' },
+  { id: 2, emoji: '⚡', name: 'Lightning', gradient: 'linear-gradient(135deg, #FFE869, #FFC857)' },
+  { id: 3, emoji: '🧬', name: 'DNA', gradient: 'linear-gradient(135deg, #A3FF12, #00FFB3)' },
+  { id: 4, emoji: '🎯', name: 'Target', gradient: 'linear-gradient(135deg, #FF6B35, #FF3B9A)' },
+  { id: 5, emoji: '💎', name: 'Diamond', gradient: 'linear-gradient(135deg, #00D9FF, #BD00FF)' },
+  { id: 6, emoji: '🌟', name: 'Star', gradient: 'linear-gradient(135deg, #FFC857, #FFE869)' },
+  { id: 7, emoji: '🔮', name: 'Crystal', gradient: 'linear-gradient(135deg, #BD00FF, #FF3B9A)' },
+  { id: 8, emoji: '🦾', name: 'Bionic', gradient: 'linear-gradient(135deg, #00FFB3, #00FFD1)' },
+  { id: 9, emoji: '🧪', name: 'Lab', gradient: 'linear-gradient(135deg, #FF3B9A, #BD00FF)' },
+  { id: 10, emoji: '🎨', name: 'Art', gradient: 'linear-gradient(135deg, #00E5FF, #A3FF12)' },
 ];
 
 export default function TrackSettings() {
@@ -175,9 +175,9 @@ export default function TrackSettings() {
                     type="button"
                     className={`avatar-option ${formData.avatar_url === avatar.emoji ? 'active' : ''}`}
                     onClick={() => handleAvatarSelect(avatar)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    style={{ '--avatar-color': avatar.color }}
+                    whileHover={{ scale: 1.05, y: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                    style={{ '--avatar-gradient': avatar.gradient }}
                   >
                     <span className="avatar-emoji">{avatar.emoji}</span>
                     <span className="avatar-name">{avatar.name}</span>
@@ -358,41 +358,84 @@ export default function TrackSettings() {
 
         .avatar-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-          gap: 1rem;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 1.25rem;
+          margin-top: 1.5rem;
         }
 
         .avatar-option {
-          background: rgba(255, 255, 255, 0.05);
-          border: 2px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          padding: 1rem;
+          position: relative;
+          background: rgba(0, 0, 0, 0.3);
+          border: 2px solid rgba(255, 255, 255, 0.15);
+          border-radius: 16px;
+          padding: 1.5rem 1rem;
           cursor: pointer;
-          transition: all 0.3s ease;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.75rem;
+          overflow: hidden;
+          aspect-ratio: 1;
+        }
+
+        .avatar-option::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: var(--avatar-gradient);
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          z-index: -1;
+        }
+
+        .avatar-option:hover::before {
+          opacity: 0.12;
         }
 
         .avatar-option:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: var(--avatar-color);
+          border-color: rgba(255, 255, 255, 0.4);
+          background: rgba(0, 0, 0, 0.5);
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
 
         .avatar-option.active {
-          background: rgba(0, 255, 209, 0.15);
-          border-color: var(--neon-1);
-          box-shadow: 0 0 20px rgba(0, 255, 209, 0.3);
+          background: rgba(0, 0, 0, 0.5);
+          border: 2px solid transparent;
+          box-shadow: 0 0 0 2px var(--neon-1), 0 8px 32px rgba(0, 255, 209, 0.4);
+        }
+
+        .avatar-option.active::before {
+          opacity: 0.2;
         }
 
         .avatar-emoji {
-          font-size: 2.5rem;
+          font-size: 3rem;
+          line-height: 1;
+          filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
         }
 
         .avatar-name {
-          font-size: 0.8rem;
-          color: var(--muted);
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: rgba(255, 255, 255, 0.7);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          text-align: center;
+          line-height: 1.2;
+        }
+
+        .avatar-option:hover .avatar-name {
+          color: rgba(255, 255, 255, 0.95);
+        }
+
+        .avatar-option.active .avatar-name {
+          color: var(--neon-1);
+          font-weight: 600;
         }
 
         .form-row {
@@ -497,16 +540,26 @@ export default function TrackSettings() {
           }
 
           .avatar-grid {
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 0.75rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
           }
 
           .avatar-emoji {
-            font-size: 2rem;
+            font-size: 2.5rem;
           }
 
           .form-row {
             grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .avatar-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .avatar-emoji {
+            font-size: 2rem;
           }
         }
       `}</style>
