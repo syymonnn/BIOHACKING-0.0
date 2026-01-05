@@ -133,7 +133,6 @@ export default function Academy({ items }) {
 
       {/* SFONDO GLOBALE AVANZATO */}
       <div className="academy-bg-layer" />
-      <div className="academy-grid-layer" />
 
       {/* HEADER */}
       <div className="academy-header">
@@ -209,6 +208,7 @@ export default function Academy({ items }) {
                 interaction-prompt="none"
                 shadow-intensity="0"
                 exposure="0.7" // Leggermente più luminoso
+                orientation="0deg 0deg 45deg"
                 className="brain-model-viewer"
                 />
             </div>
@@ -321,8 +321,8 @@ export default function Academy({ items }) {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-image: 
-                linear-gradient(rgba(0, 240, 255, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+                linear-gradient(rgba(0, 255, 0, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.08) 1px, transparent 1px);
             background-size: 50px 50px;
             mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
             z-index: -1;
@@ -332,7 +332,7 @@ export default function Academy({ items }) {
         /* HEADER TIPOGRAFIA */
         .academy-header {
             position: relative; z-index: 10; textAlign: center; paddingTop: 8rem;
-            margin-bottom: 2rem;
+            margin-bottom: 0.5rem;
         }
         .neon-title {
             font-family: 'Inter', sans-serif; font-weight: 800;
@@ -342,9 +342,10 @@ export default function Academy({ items }) {
             margin: 0; letter-spacing: -1px;
         }
         .neon-title .text-stroke {
-            color: transparent;
-            -webkit-text-stroke: 1px rgba(189, 0, 255, 0.8);
-            filter: drop-shadow(0 0 5px rgba(189, 0, 255, 0.5));
+            color: rgba(0, 174, 239, 0.9);
+            font-weight: 900;
+            text-shadow: 0 0 8px rgba(0, 174, 239, 0.4), 0 0 15px rgba(0, 174, 239, 0.2);
+            letter-spacing: 2px;
         }
         .subtitle-container {
             position: relative; display: inline-block;
@@ -371,7 +372,7 @@ export default function Academy({ items }) {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 3rem 0;
+            margin: 1rem 0;
         }
         
         .central-core-glow {
@@ -398,8 +399,8 @@ export default function Academy({ items }) {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 350px; /* Dimensione fissa per centraggio perfetto */
-            height: 350px;
+            width: 480px; /* Dimensione fissa per centraggio perfetto */
+            height: 480px;
             z-index: 5;
             /* Aggiunge un bagliore CSS che emana dal canvas del modello */
             filter: drop-shadow(0 0 30px rgba(120, 50, 255, 0.3));
@@ -409,6 +410,11 @@ export default function Academy({ items }) {
         }
         .brain-model-viewer {
             width: 100%; height: 100%;
+            --poster-color: transparent;
+            background-color: transparent;
+        }
+        .brain-model-viewer::part(default-progress-bar) {
+            display: none;
         }
 
         /* SVG CONNECTIONS (Circuiti) */

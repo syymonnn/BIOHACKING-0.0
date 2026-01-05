@@ -8,9 +8,9 @@ export default function Header() {
         <Link href="/"><span>Æ‑HUMAN</span></Link>
       </div>
       <nav className={styles.navLinks}>
-        <Link href="/products">PRODUCTS</Link>
         <Link href="/academy">ACADEMY</Link>
         <Link href="/track">TRACK</Link>
+        <Link href="/products">PRODUCTS</Link>
       </nav>
     </header>
   );

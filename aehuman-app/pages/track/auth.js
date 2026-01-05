@@ -2,38 +2,192 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
-import { login, isAuthenticated } from '../../lib/auth';
+import { login, isAuthenticatedSync } from '../../lib/auth';
+import { supabase } from '../../lib/supabaseClient';
 import { motion } from 'framer-motion';
 
 export default function TrackAuth() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   // Redirect se già autenticato
   useEffect(() => {
-    if (isAuthenticated()) {
+    if (isAuthenticatedSync()) {
       router.push('/track/app');
     }
+  }, [router]);
+
+  // Gestisci il callback di Supabase dopo il click sul magic link
+  useEffect(() => {
+    if (!supabase) return;
+
+    // Controlla se c'è un hash fragment nella URL (da magic link)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+
+    if (accessToken) {
+      // L'utente ha cliccato sul magic link
+      // Supabase gestisce automaticamente la sessione
+      const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          // Salva in localStorage per sincronizzare
+          const authData = {
+            email: session.user.email,
+            loggedIn: true,
+            timestamp: Date.now()
+          };
+          localStorage.setItem('aehuman_auth', JSON.stringify(authData));
+          
+          // Pulisci l'URL e redirect all'app
+          window.history.replaceState({}, document.title, '/track/app');
+          router.push('/track/app');
+        }
+      });
+
+      return () => {
+        authListener?.subscription.unsubscribe();
+      };
+    }
+
+    // Listener normale per altri casi
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        const authData = {
+          email: session.user.email,
+          loggedIn: true,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('aehuman_auth', JSON.stringify(authData));
+        router.push('/track/app');
+      }
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
     setLoading(true);
 
     try {
-      login(email);
-      // Redirect dopo login
-      setTimeout(() => {
-        router.push('/track/app');
-      }, 500);
+      const result = await login(email);
+      
+      if (result.needsConfirmation) {
+        // Supabase magic link inviato
+        setSuccess(true);
+        setLoading(false);
+      } else {
+        // Fallback mode (dev) - redirect diretto
+        setTimeout(() => {
+          router.push('/track/app');
+        }, 500);
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Errore durante il login');
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <Layout title="Controlla la tua email – Track – Æ‑HUMAN">
+        <div className="auth-container">
+          <motion.div
+            className="auth-card success-card"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="success-icon">✉️</div>
+            <h1>Controlla la tua email</h1>
+            <p>Ti abbiamo inviato un <strong>magic link</strong> a:</p>
+            <p className="email-display">{email}</p>
+            <p className="instruction">
+              Clicca sul link nell'email per accedere al tuo Health Space.
+            </p>
+            <button 
+              onClick={() => setSuccess(false)}
+              className="btn-back"
+            >
+              ← Torna al login
+            </button>
+          </motion.div>
+
+          <style jsx>{`
+            .auth-container {
+              min-height: calc(100vh - var(--navbar-height));
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 2rem 1.5rem;
+            }
+
+            .success-card {
+              text-align: center;
+              padding: 3rem;
+            }
+
+            .success-icon {
+              font-size: 4rem;
+              margin-bottom: 1.5rem;
+              animation: bounce 1s ease-in-out infinite;
+            }
+
+            @keyframes bounce {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-10px); }
+            }
+
+            .success-card h1 {
+              font-size: 2rem;
+              margin-bottom: 1rem;
+              background: linear-gradient(135deg, var(--neon-1), var(--neon-2));
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+            }
+
+            .email-display {
+              font-size: 1.25rem;
+              color: var(--neon-1);
+              font-weight: 600;
+              margin: 1rem 0;
+            }
+
+            .instruction {
+              color: var(--muted);
+              line-height: 1.6;
+              margin: 1.5rem 0;
+            }
+
+            .btn-back {
+              margin-top: 2rem;
+              padding: 0.875rem 2rem;
+              background: rgba(0, 255, 209, 0.1);
+              border: 1px solid var(--neon-1);
+              border-radius: 12px;
+              color: var(--neon-1);
+              font-weight: 600;
+              cursor: pointer;
+              transition: all 0.3s ease;
+            }
+
+            .btn-back:hover {
+              background: rgba(0, 255, 209, 0.2);
+              transform: translateY(-2px);
+            }
+          `}</style>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="Login – Track – Æ‑HUMAN">
@@ -47,6 +201,9 @@ export default function TrackAuth() {
           <div className="auth-header">
             <h1>Welcome to Your Health Space</h1>
             <p>Accedi con la tua email per continuare</p>
+            <p className="auth-hint">
+              💡 Nuovo o di ritorno? Inserisci la tua email e riceverai un link di accesso sicuro.
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
@@ -85,7 +242,10 @@ export default function TrackAuth() {
 
           <div className="auth-footer">
             <p className="disclaimer-small">
-              Autenticazione MVP. Non vengono inviate email di verifica al momento.
+              {supabase 
+                ? '🔐 Autenticazione sicura tramite Magic Link. Nessuna password richiesta.'
+                : '⚠️ Modalità sviluppo: login diretto senza verifica email.'
+              }
             </p>
           </div>
         </motion.div>
@@ -128,6 +288,17 @@ export default function TrackAuth() {
         .auth-header p {
           color: var(--muted);
           font-size: 1rem;
+        }
+
+        .auth-hint {
+          font-size: 0.9rem;
+          color: rgba(0, 255, 209, 0.9);
+          background: rgba(0, 255, 209, 0.08);
+          padding: 0.875rem 1rem;
+          border-radius: 10px;
+          border-left: 3px solid var(--neon-1);
+          margin-top: 1rem;
+          line-height: 1.5;
         }
 
         .auth-form {

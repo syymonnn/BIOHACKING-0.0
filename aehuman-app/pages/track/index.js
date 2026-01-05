@@ -52,9 +52,15 @@ export default function TrackLanding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="feature-icon">🧬</div>
+              <div className="feature-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
               <h3>Protocol Builder</h3>
-              <p>Costruisci <strong className="highlight">protocolli personalizzati</strong> con abitudini <strong className="highlight">core</strong> e <strong className="highlight">opzionali</strong> basate su <strong className="highlight">evidenza scientifica</strong>.</p>
+              <p>Costruisci <strong className="highlight">protocolli personalizzati</strong> con abitudini <strong className="highlight">core</strong> e <strong className="highlight">secondari</strong> basate su <strong className="highlight">evidenza scientifica</strong>.</p>
             </motion.div>
 
             <motion.div
@@ -63,7 +69,13 @@ export default function TrackLanding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <div className="feature-icon">📊</div>
+              <div className="feature-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 3V21H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M7 16L12 11L15 14L21 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M16 8H21V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
               <h3>Habit Tracking</h3>
               <p>Traccia le tue <strong className="highlight">abitudini quotidiane</strong>, visualizza <strong className="highlight">streak</strong> e <strong className="highlight">consistency score</strong> in <strong className="highlight">tempo reale</strong>.</p>
             </motion.div>
@@ -74,7 +86,16 @@ export default function TrackLanding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <div className="feature-icon">✨</div>
+              <div className="feature-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M12 6V12L16 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M12 2V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M12 20V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M4.93 4.93L6.34 6.34" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M17.66 17.66L19.07 19.07" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
               <h3>Insight & Reviews</h3>
               <p>Ricevi <strong className="highlight">insight settimanali</strong> automatici e <strong className="highlight">monthly recap</strong> per monitorare i tuoi <strong className="highlight">progressi</strong>.</p>
             </motion.div>
@@ -244,7 +265,10 @@ export default function TrackLanding() {
           backdrop-filter: blur(20px);
           border: 1px solid rgba(0, 255, 209, 0.2);
           border-radius: var(--radius-2);
-          padding: 3rem 2rem;
+          padding: 2.5rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
           text-align: center;
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
@@ -276,21 +300,31 @@ export default function TrackLanding() {
         }
 
         .feature-icon {
-          font-size: 4rem;
-          margin-bottom: 1.5rem;
-          display: inline-block;
-          filter: drop-shadow(0 4px 12px rgba(0, 255, 209, 0.3));
-          transition: all 0.3s ease;
+          margin: 0 0 1.5rem 0;
+          width: 80px;
+          height: 80px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, rgba(0, 255, 209, 0.1), rgba(163, 255, 18, 0.1));
+          border: 2px solid rgba(0, 255, 209, 0.3);
+          border-radius: 20px;
+          color: var(--neon-1);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .feature-card:hover .feature-icon {
-          transform: scale(1.15) rotate(5deg);
-          filter: drop-shadow(0 8px 20px rgba(0, 255, 209, 0.5));
+          transform: translateY(-5px) scale(1.05);
+          background: linear-gradient(135deg, rgba(0, 255, 209, 0.2), rgba(163, 255, 18, 0.2));
+          border-color: var(--neon-1);
+          box-shadow: 0 10px 30px rgba(0, 255, 209, 0.4),
+                      0 0 50px rgba(163, 255, 18, 0.3);
         }
 
         .feature-card h3 {
-          font-size: 2rem;
-          margin-bottom: 1.25rem;
+          font-size: 1.75rem;
+          margin: 0 0 1rem 0;
           color: var(--txt);
           font-weight: 700;
           background: linear-gradient(135deg, var(--neon-1), var(--neon-2));
@@ -302,8 +336,9 @@ export default function TrackLanding() {
 
         .feature-card p {
           color: var(--muted);
-          line-height: 1.8;
-          font-size: 1.15rem;
+          line-height: 1.7;
+          font-size: 1.05rem;
+          margin: 0;
         }
 
         .feature-card .highlight {

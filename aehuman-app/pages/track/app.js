@@ -4,34 +4,47 @@ import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import ProtocolBuilder from '../../components/ProtocolBuilder';
 import HabitCoach from '../../components/HabitCoach';
-import { isAuthenticated, getUser, logout } from '../../lib/auth';
+import { isAuthenticatedSync, getUser, logout } from '../../lib/auth';
+import { supabase } from '../../lib/supabaseClient';
 import { motion } from 'framer-motion';
 
 export default function TrackApp() {
   const [user, setUser] = useState(null);
   const [selectedHabits, setSelectedHabits] = useState([]);
   const [activeView, setActiveView] = useState('coach'); // 'coach' or 'builder'
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect se non autenticato
-    if (!isAuthenticated()) {
-      router.push('/track/auth');
-      return;
-    }
+    async function loadUser() {
+      // Verifica autenticazione
+      if (!isAuthenticatedSync()) {
+        router.push('/track/auth');
+        return;
+      }
 
-    const userData = getUser();
-    setUser(userData);
+      // Carica dati utente
+      const userData = await getUser();
+      if (!userData) {
+        router.push('/track/auth');
+        return;
+      }
 
-    // Carica abitudini salvate
-    const savedHabits = localStorage.getItem('aehuman_selected_habits');
-    if (savedHabits) {
-      try {
-        setSelectedHabits(JSON.parse(savedHabits));
-      } catch (e) {
-        console.error('Error loading habits:', e);
+      setUser(userData);
+      setLoading(false);
+
+      // Carica abitudini salvate
+      const savedHabits = localStorage.getItem('aehuman_selected_habits');
+      if (savedHabits) {
+        try {
+          setSelectedHabits(JSON.parse(savedHabits));
+        } catch (e) {
+          console.error('Error loading habits:', e);
+        }
       }
     }
+
+    loadUser();
   }, [router]);
 
   const handleProtocolChange = (newHabits) => {
@@ -39,12 +52,12 @@ export default function TrackApp() {
     localStorage.setItem('aehuman_selected_habits', JSON.stringify(newHabits));
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push('/track');
   };
 
-  if (!user) {
+  if (loading || !user) {
     return (
       <Layout title="Loading...">
         <div className="loading-container">
@@ -72,9 +85,21 @@ export default function TrackApp() {
               <h1>Your Health Space</h1>
               <p className="user-email">{user.email}</p>
             </div>
-            <button className="logout-btn" onClick={handleLogout}>
-              Logout
-            </button>
+            <div className="header-right">
+              <button 
+                className="user-settings-btn" 
+                onClick={() => router.push('/track/settings')}
+                title="Personal Settings"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M4 20C4 16.6863 6.68629 14 10 14H14C17.3137 14 20 16.6863 20 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+              <button className="logout-btn" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
           </div>
         </div>
 
@@ -193,6 +218,12 @@ export default function TrackApp() {
           gap: 2rem;
         }
 
+        .header-right {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
         .header-left h1 {
           font-size: clamp(1.75rem, 4vw, 2.5rem);
           margin: 0 0 0.5rem 0;
@@ -208,6 +239,35 @@ export default function TrackApp() {
           margin: 0;
         }
 
+        .user-settings-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0.75rem;
+          background: rgba(0, 255, 209, 0.1);
+          border: 1px solid rgba(0, 255, 209, 0.3);
+          border-radius: var(--radius-1);
+          color: var(--neon-1);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          height: 44px;
+          width: 44px;
+        }
+
+        .user-settings-btn:hover {
+          background: rgba(0, 255, 209, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 15px rgba(0, 255, 209, 0.3);
+        }
+
+        .user-settings-btn svg {
+          transition: transform 0.3s ease;
+        }
+
+        .user-settings-btn:hover svg {
+          transform: scale(1.1);
+        }
+
         .logout-btn {
           padding: 0.75rem 1.5rem;
           background: rgba(255, 255, 255, 0.05);
@@ -219,6 +279,7 @@ export default function TrackApp() {
           cursor: pointer;
           transition: all 0.3s ease;
           white-space: nowrap;
+          height: 44px;
         }
 
         .logout-btn:hover {
